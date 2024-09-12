@@ -2,11 +2,10 @@ import { vars } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
 const MNEMONIC = vars.get("MNEMONIC");
-const BSC_API_KEY = vars.get("BSC_API_KEY");
-const POLYGON_API_KEY = vars.get("POLYGON_API_KEY");
-const ARBITRUM_API_KEY = vars.get("ARBITRUM_API_KEY");
-const AVALANCHE_API_KEY = vars.get("AVALANCHE_API_KEY");
-const SCROLL_API_KEY = vars.get("SCROLL_API_KEY");
+// const BSC_API_KEY = vars.get("BSC_API_KEY");
+// const ARBITRUM_API_KEY = vars.get("ARBITRUM_API_KEY");
+// const AVALANCHE_API_KEY = vars.get("AVALANCHE_API_KEY");
+// const SCROLL_API_KEY = vars.get("SCROLL_API_KEY");
 
 module.exports = {
   solidity: {
@@ -23,13 +22,6 @@ module.exports = {
     bsc: {
       url: 'wss://bsc-testnet-rpc.publicnode.com',
       chainId: 97,
-      accounts: {
-        mnemonic: MNEMONIC
-      },
-    },
-    polygon: {
-      url: 'https://rpc-amoy.polygon.technology',
-      chainId: 80002,
       accounts: {
         mnemonic: MNEMONIC
       },
@@ -58,11 +50,10 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      bsc: BSC_API_KEY,
-      polygon: POLYGON_API_KEY,
-      arbitrum: ARBITRUM_API_KEY,
-      avalanche: AVALANCHE_API_KEY,
-      scroll: SCROLL_API_KEY
+      // bsc: BSC_API_KEY,
+      // arbitrum: ARBITRUM_API_KEY,
+      // avalanche: AVALANCHE_API_KEY,
+      // scroll: SCROLL_API_KEY
     },
     customChains: [
       {

@@ -82,7 +82,7 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             // transfer Tokens to sender
             IERC20(tokenOut).safeTransfer(sender, amountOut);
         } else {
-            // cross chain call to released ETH on the destination chain.
+            // cross chain call to release Tokens on the destination chain.
             _crossChainCall(
                 sender,
                 destinationChainSelector,
@@ -92,7 +92,17 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
         }
     }
 
-    // =================== ADMIN  =================== //
+    // =================== VIEW FUNCTIONS =================== //
+
+    function bestRouter(
+        uint256 amountIn,
+        address tokenIn,
+        address tokenOut
+    ) external view returns (uint256, address) {
+        return IHoneyExecutor(EXECUTOR).bestRouter(amountIn, tokenIn, tokenOut);
+    }
+
+    // =================== ADMIN FUNCTIONS =================== //
 
     function addTokenPeer(
         uint256 chainSelector,
@@ -108,6 +118,18 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
 
     function unPause() external onlyRole(ADMIN_ROLE) {
         _unpause();
+    }
+
+    function addRouter(
+        string calldata name,
+        string calldata routerURI,
+        address routerId
+    ) external onlyRole(ADMIN_ROLE) {
+        IHoneyExecutor(EXECUTOR).addRouter(name, routerURI, routerId);
+    }
+
+    function removeRouter(address routerId) external onlyRole(ADMIN_ROLE) {
+        IHoneyExecutor(EXECUTOR).removeRouter(routerId);
     }
 
     // =================== INTERNAL =================== //

@@ -5,8 +5,11 @@ import "./HoneyErrors.sol";
 import {IHoneyExecutor} from "./interfaces/IHoneyExecutor.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HoneyExecutor is IHoneyExecutor, AccessControl {
+    using SafeERC20 for IERC20;
+
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     // =================== STRUCT =================== //
@@ -50,6 +53,8 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
             revert InsufficientOutputAmount(bestAmountOut, amountOutMin);
         }
 
+        IERC20(tokenIn).approve(routerId, amountIn);
+
         // Create a path for the swap (tokenIn -> tokenOut)
         address[] memory path = new address[](2);
         path[0] = tokenIn; // Start with tokenIn
@@ -68,6 +73,14 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
 
         // Return the actual output amount (the last value in the amountsOut array)
         return amountsOut[amountsOut.length - 1];
+    }
+
+    function bestRouter(
+        uint256 amountIn,
+        address tokenIn,
+        address tokenOut
+    ) external view override returns (uint256, address) {
+        return _bestRouter(amountIn, tokenIn, tokenOut);
     }
 
     // =================== INTERNAL FUNCTIONS =================== //
@@ -114,13 +127,15 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         string calldata name,
         string calldata routerURI,
         address routerId
-    ) external onlyRole(ADMIN_ROLE) {
+    ) external override onlyRole(ADMIN_ROLE) {
         routers[routerId] = Router(name, routerURI);
         routerIds.push(routerId);
     }
 
     // Function to remove a router
-    function removeRouter(address routerId) external onlyRole(ADMIN_ROLE) {
+    function removeRouter(
+        address routerId
+    ) external override onlyRole(ADMIN_ROLE) {
         delete routers[routerId];
 
         // Find and remove the routerId from the array
