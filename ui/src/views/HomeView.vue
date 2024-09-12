@@ -78,14 +78,14 @@ import SortIcon from '@/components/icons/SortIcon.vue';
                 <p>You receive</p>
 
                 <button class="chain">
-                  <img src="" alt="">
+                  <img src="/images/scroll.png" alt="">
                   <p>Scroll</p>
                   <ChevronDownIcon />
 
                   <div class="chains_dropdown">
                     <button class="chain_dropdown">
-                      <img src="/images/scroll.png" alt="">
-                      <p>Scroll</p>
+                      <img src="/images/bsc.png" alt="">
+                      <p>BSC</p>
                     </button>
                   </div>
                 </button>
@@ -137,7 +137,8 @@ import SortIcon from '@/components/icons/SortIcon.vue';
 .swap_view {
   display: flex;
   justify-content: center;
-  padding: 40px 0;
+  padding-top: 40px;
+  padding-bottom: 80px;
 }
 
 .swap_widget {
@@ -362,6 +363,11 @@ import SortIcon from '@/components/icons/SortIcon.vue';
 }
 
 @media screen and (max-width: 800px) {
+  .swap_view {
+    padding-top: 36px;
+    padding-bottom: 100px;
+  }
+
   .swap_widget_title h3 {
     font-size: 36px;
   }
