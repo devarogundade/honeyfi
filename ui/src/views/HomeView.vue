@@ -6,11 +6,27 @@ import OutIcon from '@/components/icons/OutIcon.vue';
 import SortIcon from '@/components/icons/SortIcon.vue';
 import TokenList from '@/components/TokenList.vue';
 import ChainList from '@/components/ChainList.vue';
-import { ref } from 'vue';
+
+import { config, chains } from '@/scripts/config';
+import { onMounted, ref } from 'vue';
 import { popularChains } from '@/scripts/chains';
 import { tokens } from '@/scripts/token';
 import type { Chain, Token, Router } from '@/scripts/types';
+import { useAddressStore } from '@/stores/address';
+import { createWeb3Modal } from '@web3modal/wagmi/vue';
+import { useWeb3Modal } from '@web3modal/wagmi/vue';
+import { watchAccount } from '@wagmi/core';
 
+createWeb3Modal({
+  wagmiConfig: config,
+  projectId: import.meta.env.VITE_PROJECT_ID,
+  // @ts-ignore
+  chains: chains,
+  enableAnalytics: true
+});
+
+const modal = useWeb3Modal();
+const addressStore = useAddressStore();
 const tokenListModal = ref(false);
 const chainListModal = ref(false);
 const replaceIndex = ref(0);
@@ -69,6 +85,14 @@ const chainChanged = (chain: Chain) => {
 
   chainListModal.value = false;
 };
+
+onMounted(() => {
+  watchAccount(config, {
+    onChange(account: any) {
+      addressStore.setAddress(account.address);
+    },
+  });
+});
 </script>
 
 <template>
@@ -151,7 +175,7 @@ const chainChanged = (chain: Chain) => {
             </div>
 
             <div class="swap_action">
-              <button>Connect Wallet</button>
+              <button @click="modal.open()">Connect Wallet</button>
             </div>
           </div>
 

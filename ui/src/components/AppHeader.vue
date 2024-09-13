@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
+
 import { config, chains } from '@/scripts/config';
 import Converter from '@/scripts/converter';
 import { onMounted } from 'vue';
-import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
