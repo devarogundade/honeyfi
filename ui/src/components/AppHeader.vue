@@ -1,5 +1,31 @@
 <script setup lang="ts">
+import { config, chains } from '@/scripts/config';
+import Converter from '@/scripts/converter';
+import { onMounted } from 'vue';
 import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
+import { useAddressStore } from '@/stores/address';
+import { createWeb3Modal } from '@web3modal/wagmi/vue';
+import { useWeb3Modal } from '@web3modal/wagmi/vue';
+import { watchAccount } from '@wagmi/core';
+
+createWeb3Modal({
+    wagmiConfig: config,
+    projectId: import.meta.env.VITE_PROJECT_ID,
+    // @ts-ignore
+    chains: chains,
+    enableAnalytics: true
+});
+
+const modal = useWeb3Modal();
+const addressStore = useAddressStore();
+
+onMounted(() => {
+    watchAccount(config, {
+        onChange(account: any) {
+            addressStore.setAddress(account.address);
+        },
+    });
+});
 </script>
 
 <template>
@@ -24,7 +50,11 @@ import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
                 </div>
 
                 <div class="header_actions">
-                    <button class="connect">Connect Wallet</button>
+                    <button class="connect" @click="modal.open()">
+                        {{ addressStore.address ? `${Converter.fineHash(addressStore.address, 4)}` :
+                            'Connect Wallet'
+                        }}
+                    </button>
                 </div>
             </header>
         </div>

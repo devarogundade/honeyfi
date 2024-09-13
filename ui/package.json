@@ -11,9 +11,15 @@
     "type-check": "vue-tsc --build --force"
   },
   "dependencies": {
+    "@wagmi/connectors": "^5.1.10",
+    "@wagmi/core": "^2.13.5",
+    "@web3modal/wagmi": "^5.1.7",
+    "bignumber.js": "^4.0.2",
     "pinia": "^2.1.7",
+    "viem": "^2.21.6",
     "vue": "^3.4.29",
-    "vue-router": "^4.3.3"
+    "vue-router": "^4.3.3",
+    "wagmi": "^2.12.11"
   },
   "devDependencies": {
     "@tsconfig/node20": "^20.1.4",
