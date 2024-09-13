@@ -34,7 +34,7 @@ const activeChainIdReplaceIndex = ref(popularChains[0].chainId);
 
 const swapInput = ref({
   fromChain: popularChains[0],
-  toChainId: popularChains[1],
+  toChain: popularChains[1],
   amountIn: undefined,
   amountOut: undefined,
   fromToken: tokens[0],
@@ -51,6 +51,17 @@ const swap = async () => {
 
 const getAmountOutWithBestRouter = async () => {
 
+};
+
+const flip = () => {
+  const tempFromChain = swapInput.value.fromChain;
+  const tempFromToken = swapInput.value.fromToken;
+
+  swapInput.value.fromChain = swapInput.value.toChain;
+  swapInput.value.fromToken = swapInput.value.toToken;
+
+  swapInput.value.toChain = tempFromChain;
+  swapInput.value.toToken = tempFromToken;
 };
 
 // ================= Modal Functions ================= //
@@ -80,7 +91,7 @@ const chainChanged = (chain: Chain) => {
   if (replaceIndex.value == 0) {
     swapInput.value.fromChain = chain;
   } else {
-    swapInput.value.toChainId = chain;
+    swapInput.value.toChain = chain;
   }
 
   chainListModal.value = false;
@@ -143,7 +154,7 @@ onMounted(() => {
             </div>
 
             <div class="swap_flip">
-              <button class="swap_flip_icon">
+              <button class="swap_flip_icon" @click="flip">
                 <FlipIcon />
               </button>
             </div>
@@ -153,8 +164,8 @@ onMounted(() => {
                 <p>You receive</p>
 
                 <button class="chain" @click="openChainListModal(1)">
-                  <img :src="swapInput.toChainId.image" :alt="swapInput.toChainId.name">
-                  <p>{{ swapInput.toChainId.shortName }}</p>
+                  <img :src="swapInput.toChain.image" :alt="swapInput.toChain.name">
+                  <p>{{ swapInput.toChain.shortName }}</p>
                   <ChevronDownIcon />
                 </button>
               </div>
@@ -162,7 +173,7 @@ onMounted(() => {
               <div class="swap_input">
                 <input type="number" disabled placeholder="0">
 
-                <button class="token" @click="openTokenListModal(1, swapInput.toChainId.chainId)">
+                <button class="token" @click="openTokenListModal(1, swapInput.toChain.chainId)">
                   <img :src="swapInput.toToken.image" :alt="swapInput.toToken.name">
                   <p>{{ swapInput.toToken.symbol }}</p>
                   <ChevronDownIcon />
