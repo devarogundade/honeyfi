@@ -4,6 +4,71 @@ import FlipIcon from '@/components/icons/FlipIcon.vue';
 import ChevronDownIcon from '@/components/icons/ChevronDownIcon.vue';
 import OutIcon from '@/components/icons/OutIcon.vue';
 import SortIcon from '@/components/icons/SortIcon.vue';
+import TokenList from '@/components/TokenList.vue';
+import ChainList from '@/components/ChainList.vue';
+import { ref } from 'vue';
+import { popularChains } from '@/scripts/chains';
+import { tokens } from '@/scripts/token';
+import type { Chain, Token, Router } from '@/scripts/types';
+
+const tokenListModal = ref(false);
+const chainListModal = ref(false);
+const replaceIndex = ref(0);
+const activeChainIdReplaceIndex = ref(popularChains[0].chainId);
+
+const swapInput = ref({
+  fromChain: popularChains[0],
+  toChainId: popularChains[1],
+  amountIn: undefined,
+  amountOut: undefined,
+  fromToken: tokens[0],
+  toToken: tokens[1]
+});
+
+const bestRouter = ref<Router | undefined>(undefined);
+
+// ================= Contract Functions ================= //
+
+const swap = async () => {
+
+};
+
+const getAmountOutWithBestRouter = async () => {
+
+};
+
+// ================= Modal Functions ================= //
+
+const openTokenListModal = (index: number, chainId: number) => {
+  replaceIndex.value = index;
+  activeChainIdReplaceIndex.value = chainId;
+  tokenListModal.value = true;
+};
+
+const openChainListModal = (index: number) => {
+  replaceIndex.value = index;
+  chainListModal.value = true;
+};
+
+const tokenChanged = (token: Token) => {
+  if (replaceIndex.value == 0) {
+    swapInput.value.fromToken = token;
+  } else {
+    swapInput.value.toToken = token;
+  }
+
+  tokenListModal.value = false;
+};
+
+const chainChanged = (chain: Chain) => {
+  if (replaceIndex.value == 0) {
+    swapInput.value.fromChain = chain;
+  } else {
+    swapInput.value.toChainId = chain;
+  }
+
+  chainListModal.value = false;
+};
 </script>
 
 <template>
@@ -31,34 +96,20 @@ import SortIcon from '@/components/icons/SortIcon.vue';
               <div class="swap_from_header">
                 <p>You pay</p>
 
-                <button class="chain">
-                  <img src="/images/bsc.png" alt="">
-                  <p>BSC</p>
+                <button class="chain" @click="openChainListModal(0)">
+                  <img :src="swapInput.fromChain.image" :alt="swapInput.fromChain.name">
+                  <p>{{ swapInput.fromChain.shortName }}</p>
                   <ChevronDownIcon />
-
-                  <div class="chains_dropdown">
-                    <button class="chain_dropdown">
-                      <img src="" alt="">
-                      <p>Scroll</p>
-                    </button>
-                  </div>
                 </button>
               </div>
 
               <div class="swap_input">
                 <input type="number" placeholder="0">
 
-                <button class="token">
-                  <img src="/images/usdt.png" alt="">
-                  <p>hUSDT</p>
+                <button class="token" @click="openTokenListModal(0, swapInput.fromChain.chainId)">
+                  <img :src="swapInput.fromToken.image" :alt="swapInput.fromToken.name">
+                  <p>{{ swapInput.fromToken.symbol }}</p>
                   <ChevronDownIcon />
-
-                  <div class="tokens_dropdown">
-                    <button class="token_dropdown">
-                      <img src="/images/btc.png" alt="">
-                      <p>hBTC</p>
-                    </button>
-                  </div>
                 </button>
               </div>
 
@@ -77,34 +128,20 @@ import SortIcon from '@/components/icons/SortIcon.vue';
               <div class="swap_from_header">
                 <p>You receive</p>
 
-                <button class="chain">
-                  <img src="/images/scroll.png" alt="">
-                  <p>Scroll</p>
+                <button class="chain" @click="openChainListModal(1)">
+                  <img :src="swapInput.toChainId.image" :alt="swapInput.toChainId.name">
+                  <p>{{ swapInput.toChainId.shortName }}</p>
                   <ChevronDownIcon />
-
-                  <div class="chains_dropdown">
-                    <button class="chain_dropdown">
-                      <img src="/images/bsc.png" alt="">
-                      <p>BSC</p>
-                    </button>
-                  </div>
                 </button>
               </div>
 
               <div class="swap_input">
                 <input type="number" disabled placeholder="0">
 
-                <button class="token">
-                  <img src="/images/btc.png" alt="">
-                  <p>hBTC</p>
+                <button class="token" @click="openTokenListModal(1, swapInput.toChainId.chainId)">
+                  <img :src="swapInput.toToken.image" :alt="swapInput.toToken.name">
+                  <p>{{ swapInput.toToken.symbol }}</p>
                   <ChevronDownIcon />
-
-                  <div class="tokens_dropdown">
-                    <button class="token_dropdown">
-                      <img src="/images/usdt.png" alt="">
-                      <p>hUSDT</p>
-                    </button>
-                  </div>
                 </button>
               </div>
 
@@ -130,6 +167,10 @@ import SortIcon from '@/components/icons/SortIcon.vue';
         </div>
       </div>
     </div>
+
+    <TokenList :chain-id="activeChainIdReplaceIndex" v-if="tokenListModal" @close="tokenListModal = false"
+      @on-token-changed="tokenChanged" />
+    <ChainList v-if="chainListModal" @on-chain-changed="chainChanged" @close="chainListModal = false" />
   </section>
 </template>
 

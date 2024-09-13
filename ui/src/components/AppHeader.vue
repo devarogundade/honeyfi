@@ -35,6 +35,7 @@ import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
 section {
     position: sticky;
     top: 0;
+    z-index: 100;
 }
 
 header {
