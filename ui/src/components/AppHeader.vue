@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import HoneyFiLogo from '@/components/icons/HoneyFiLogo.vue';
-
 import { config, chains } from '@/scripts/config';
 import Converter from '@/scripts/converter';
 import { onMounted } from 'vue';
@@ -38,7 +36,7 @@ onMounted(() => {
                 <div class="header_info">
                     <RouterLink to="/">
                         <div class="logo">
-                            <HoneyFiLogo />
+                            <img src="/images/logo.png" alt="">
                         </div>
                     </RouterLink>
 
@@ -84,9 +82,12 @@ header {
     gap: 40px;
 }
 
-.logo svg {
-    margin-top: 6px;
-    width: 120px;
+.logo {
+    width: 50px;
+}
+
+.logo img {
+    width: 100%;
 }
 
 .tabs {
@@ -128,8 +129,8 @@ header {
         height: 60px;
     }
 
-    .logo svg {
-        width: 80px;
+    .logo {
+        width: 40px;
     }
 
     .tabs {
