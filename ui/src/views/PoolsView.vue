@@ -20,6 +20,11 @@ createWeb3Modal({
   enableAnalytics: true
 });
 
+enum Mode {
+  DEPOSIT,
+  WITHDRAW
+}
+
 const modal = useWeb3Modal();
 const addressStore = useAddressStore();
 const tokenListModal = ref(false);
@@ -48,7 +53,8 @@ const chainChanged = (chain: Chain) => {
 
 const poolsInput = ref({
   chain: popularChains[0],
-  token: findChainTokens(popularChains[0].chainId)[0]
+  token: findChainTokens(popularChains[0].chainId)[0],
+  mode: Mode.DEPOSIT
 });
 
 onMounted(() => {
@@ -95,16 +101,19 @@ onMounted(() => {
             </div>
           </div>
 
-          <div class="swap_widget">
+          <div class="liquidity_widget">
             <div class="tabs">
-              <button class="tab tab_active">Add</button>
-              <button class="tab">Remove</button>
+              <button :class="poolsInput.mode == Mode.DEPOSIT ? 'tab tab_active' : 'tab'"
+                @click="poolsInput.mode = Mode.DEPOSIT">Add</button>
+
+              <button :class="poolsInput.mode == Mode.WITHDRAW ? 'tab tab_active' : 'tab'"
+                @click="poolsInput.mode = Mode.WITHDRAW">Remove</button>
             </div>
 
-            <div class="swap_box">
-              <div class="swap_box_child">
-                <div class="swap_from_header">
-                  <p>You deposit</p>
+            <div class="liquidity_box">
+              <div class="liquidity_box_child">
+                <div class="liquidity_from_header">
+                  <p>You {{ poolsInput.mode == Mode.DEPOSIT ? 'deposit' : 'withdraw' }}</p>
 
                   <button class="chain" @click="openChainListModal()">
                     <img :src="poolsInput.chain.image" :alt="poolsInput.chain.name">
@@ -113,7 +122,7 @@ onMounted(() => {
                   </button>
                 </div>
 
-                <div class="swap_input">
+                <div class="liquidity_input">
                   <input type="number" placeholder="0">
 
                   <button class="token" @click="openTokenListModal()">
@@ -123,12 +132,12 @@ onMounted(() => {
                   </button>
                 </div>
 
-                <div class="swap_price">
+                <div class="liquidity_price">
                   <p>$1.03</p>
                 </div>
               </div>
 
-              <div class="swap_action">
+              <div class="liquidity_action">
                 <button @click="modal.open()">Connect Wallet</button>
               </div>
             </div>
@@ -284,42 +293,42 @@ onMounted(() => {
   border: 1px solid var(--border);
 }
 
-.swap_box {
+.liquidity_box {
   width: 420px;
   max-width: 100%;
 }
 
-.swap_box_child {
+.liquidity_box_child {
   border: 1px solid var(--bg-light);
   background: var(--bg-light);
   border-radius: 16px;
   padding: 16px;
 }
 
-.swap_box_child:first-child:hover {
+.liquidity_box_child:first-child:hover {
   border: 1px solid var(--border);
 }
 
-.swap_from_header {
+.liquidity_from_header {
   display: flex;
   align-items: center;
   justify-content: space-between;
 }
 
-.swap_from_header>p {
+.liquidity_from_header>p {
   font-size: 16px;
   font-weight: 500;
   color: var(--tx-normal);
 }
 
-.swap_input {
+.liquidity_input {
   display: flex;
   align-items: center;
   justify-content: space-between;
   margin: 16px 0;
 }
 
-.swap_input input {
+.liquidity_input input {
   font-size: 30px;
   background: none;
   border: none;
@@ -328,11 +337,11 @@ onMounted(() => {
   width: 200px;
 }
 
-.swap_input input::placeholder {
+.liquidity_input input::placeholder {
   color: var(--tx-dimmed);
 }
 
-.swap_flip {
+.liquidity_flip {
   width: 100%;
   height: 6px;
   display: flex;
@@ -341,7 +350,7 @@ onMounted(() => {
   position: relative;
 }
 
-.swap_flip_icon {
+.liquidity_flip_icon {
   position: absolute;
   width: 45px;
   height: 45px;
@@ -391,18 +400,18 @@ onMounted(() => {
   color: var(--tx-normal);
 }
 
-.swap_price p {
+.liquidity_price p {
   min-height: 16px;
   font-size: 12px;
   font-weight: 500;
   color: var(--tx-dimmed);
 }
 
-.swap_action {
+.liquidity_action {
   margin-top: 6px;
 }
 
-.swap_action button {
+.liquidity_action button {
   width: 100%;
   color: var(--primary-light);
   font-size: 18px;

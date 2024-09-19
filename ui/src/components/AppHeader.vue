@@ -8,6 +8,7 @@ import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { watchAccount } from '@wagmi/core';
+import { useRoute } from 'vue-router';
 
 createWeb3Modal({
     wagmiConfig: config,
@@ -19,6 +20,7 @@ createWeb3Modal({
 
 const modal = useWeb3Modal();
 const addressStore = useAddressStore();
+const route = useRoute();
 
 onMounted(() => {
     watchAccount(config, {
@@ -42,10 +44,10 @@ onMounted(() => {
 
                     <nav class="tabs">
                         <RouterLink to="/">
-                            <button class="tab tab_active">Swap</button>
+                            <button :class="route.name == 'swap' ? 'tab tab_active' : 'tab'">Swap</button>
                         </RouterLink>
                         <RouterLink to="/pools">
-                            <button class="tab">hPools</button>
+                            <button :class="route.name == 'pools' ? 'tab tab_active' : 'tab'">Earn</button>
                         </RouterLink>
                     </nav>
                 </div>
