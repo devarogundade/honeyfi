@@ -247,7 +247,11 @@ const searchValue = ref('');
 
     .token_box {
         border-bottom: none;
-        border-radius: 16px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .tokens {
+        max-height: 40vh;
     }
 }
 </style>

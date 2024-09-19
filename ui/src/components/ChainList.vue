@@ -229,7 +229,11 @@ const searchValue = ref('');
 
     .chain_box {
         border-bottom: none;
-        border-radius: 16px;
+        border-radius: 16px 16px 0 0;
+    }
+
+    .chains {
+        max-height: 40vh;
     }
 }
 </style>
