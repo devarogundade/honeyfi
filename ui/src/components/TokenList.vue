@@ -165,6 +165,7 @@ const searchValue = ref('');
 
 .tokens {
     height: 420px;
+    max-height: 50vh;
     overflow-y: auto;
 }
 
@@ -237,5 +238,16 @@ const searchValue = ref('');
     color: var(--tx-dimmed);
     font-size: 12px;
     text-align: center;
+}
+
+@media screen and (max-width: 800px) {
+    .container {
+        align-items: flex-end;
+    }
+
+    .token_box {
+        border-bottom: none;
+        border-radius: 16px;
+    }
 }
 </style>

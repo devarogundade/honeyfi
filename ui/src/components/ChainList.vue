@@ -157,6 +157,7 @@ const searchValue = ref('');
 
 .chains {
     height: 420px;
+    max-height: 50vh;
     overflow-y: auto;
 }
 
@@ -219,5 +220,16 @@ const searchValue = ref('');
     font-size: 12px;
     font-weight: 400;
     color: var(--tx-semi);
+}
+
+@media screen and (max-width: 800px) {
+    .container {
+        align-items: flex-end;
+    }
+
+    .chain_box {
+        border-bottom: none;
+        border-radius: 16px;
+    }
 }
 </style>
