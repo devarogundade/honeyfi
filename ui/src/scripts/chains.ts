@@ -6,6 +6,7 @@ export const chains: Chain[] = [
         image: "/images/bsc.png",
         shortName: "BSC",
         chainId: 97,
+        explorerUrl: '',
         equitoSelector: 1002,
         faucetLink: ''
     },
@@ -14,6 +15,7 @@ export const chains: Chain[] = [
         image: "/images/arb.png",
         shortName: "Arb",
         chainId: 421614,
+        explorerUrl: '',
         equitoSelector: 1004,
         faucetLink: ''
     },
@@ -22,6 +24,7 @@ export const chains: Chain[] = [
         image: "/images/avax.png",
         shortName: "Avax",
         chainId: 43113,
+        explorerUrl: '',
         equitoSelector: 1005,
         faucetLink: ''
     },
@@ -30,6 +33,7 @@ export const chains: Chain[] = [
         image: "/images/scroll.png",
         shortName: "Scroll",
         chainId: 534351,
+        explorerUrl: '',
         equitoSelector: 1020,
         faucetLink: ''
     }

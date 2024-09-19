@@ -7,14 +7,18 @@ import SortIcon from '@/components/icons/SortIcon.vue';
 import TokenList from '@/components/TokenList.vue';
 import ChainList from '@/components/ChainList.vue';
 import { config, chains } from '@/scripts/config';
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
+import { notify } from '@/reactives/notify';
 import { popularChains } from '@/scripts/chains';
+import { getAllowance, getTokenBalance, approveTokens } from '@/scripts/erc20';
 import { tokens } from '@/scripts/token';
+import { getBestPrice, honeyIds, swapTokens } from '@/scripts/swap';
 import type { Chain, Token, Router } from '@/scripts/types';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { watchAccount } from '@wagmi/core';
+import Converter from '@/scripts/converter';
 
 createWeb3Modal({
   wagmiConfig: config,
@@ -31,25 +35,174 @@ const chainListModal = ref(false);
 const replaceIndex = ref(0);
 const activeChainIdReplaceIndex = ref(popularChains[0].chainId);
 
-const swapInput = ref({
+const swapping = ref<boolean>(false);
+const approving = ref<boolean>(false);
+
+interface SwapInput {
+  fromChain: Chain;
+  toChain: Chain;
+  amountIn: number | undefined,
+  amountOutMin: number | undefined;
+  fromToken: Token;
+  toToken: Token;
+  router: Router | undefined;
+  balanceIn: number;
+  balanceOut: number;
+  approveIn: number;
+}
+
+const swapInput = ref<SwapInput>({
   fromChain: popularChains[0],
   toChain: popularChains[1],
   amountIn: undefined,
-  amountOut: undefined,
+  amountOutMin: undefined,
   fromToken: tokens[0],
-  toToken: tokens[1]
+  toToken: tokens[1],
+  router: undefined,
+  balanceIn: 0,
+  balanceOut: 0,
+  approveIn: 0
 });
-
-const bestRouter = ref<Router | undefined>(undefined);
 
 // ================= Contract Functions ================= //
 
 const swap = async () => {
+  if (!addressStore.address) {
+    notify.push({
+      title: 'Connect Wallet',
+      description: 'Wallet connection is required.',
+      category: 'error'
+    });
+    return;
+  }
 
+  if (!swapInput.value.amountIn || swapInput.value.amountIn == 0) {
+    notify.push({
+      title: 'Invalid amount in',
+      description: 'Enter a valid amount to swap.',
+      category: 'error'
+    });
+    return;
+  };
+
+  if (!swapInput.value.amountOutMin || swapInput.value.amountOutMin == 0) {
+    notify.push({
+      title: 'Invalid amount out',
+      description: 'Please wait for estimated amount out.',
+      category: 'error'
+    });
+    return;
+  };
+
+  if (swapInput.value.amountIn > (swapInput.value.balanceIn || 0)) {
+    notify.push({
+      title: 'Insufficient funds',
+      description: 'Please carefully enter your actual balance.',
+      category: 'error'
+    });
+    return;
+  };
+
+  if (swapping.value) {
+    notify.push({
+      title: 'Please wait',
+      description: 'Swapping in progress.',
+      category: 'error'
+    });
+    return;
+  }
+
+  swapping.value = true;
+
+  const txHash = await swapTokens(
+    swapInput.value.fromChain,
+    swapInput.value.toChain,
+    swapInput.value.fromToken,
+    swapInput.value.toToken,
+    Converter.toWei(swapInput.value.amountIn),
+    Converter.toWei(swapInput.value.amountOutMin)
+  );
+
+  if (txHash) {
+    notify.push({
+      title: 'Swap completed',
+      description: 'Transaction was sent succesfully.',
+      category: 'success',
+      linkTitle: 'View Trx',
+      linkUrl: `${swapInput.value.fromChain.explorerUrl}/tx/${txHash}`
+    });
+
+    swapInput.value.amountIn = undefined;
+    swapInput.value.amountOutMin = undefined;
+  } else {
+    notify.push({
+      title: 'Transaction failed',
+      description: 'Try again later.',
+      category: 'error'
+    });
+  }
+
+  swapping.value = false;
 };
 
-const getAmountOutWithBestRouter = async () => {
+const approve = async () => {
+  if (!addressStore.address) {
+    notify.push({
+      title: 'Connect Wallet',
+      description: 'Wallet connection is required.',
+      category: 'error'
+    });
+    return;
+  }
 
+  if (!swapInput.value.amountIn || swapInput.value.amountIn == 0) {
+    notify.push({
+      title: 'Invalid amount in',
+      description: 'Enter a valid amount to swap.',
+      category: 'error'
+    });
+    return;
+  };
+
+  if (approving.value) {
+    notify.push({
+      title: 'Please wait',
+      description: 'Approval in progress.',
+      category: 'error'
+    });
+    return;
+  }
+
+  approving.value = true;
+
+  const txHash = await approveTokens(
+    swapInput.value.fromToken,
+    swapInput.value.fromChain,
+    honeyIds[swapInput.value.fromChain.chainId],
+    Converter.toWei(swapInput.value.amountIn)
+  );
+
+  if (txHash) {
+    notify.push({
+      title: 'Approval completed',
+      description: 'Transaction was sent succesfully.',
+      category: 'success',
+      linkTitle: 'View Trx',
+      linkUrl: `${swapInput.value.fromChain.explorerUrl}/tx/${txHash}`
+    });
+
+    updateApprovals();
+
+    swap();
+  } else {
+    notify.push({
+      title: 'Transaction failed',
+      description: 'Try again later.',
+      category: 'error'
+    });
+  }
+
+  approving.value = false;
 };
 
 const flip = () => {
@@ -61,6 +214,61 @@ const flip = () => {
 
   swapInput.value.toChain = tempFromChain;
   swapInput.value.toToken = tempFromToken;
+};
+
+// ================= UX Functions ================= //
+
+const updateAmountOut = async () => {
+  if (!swapInput.value.amountIn) {
+    swapInput.value.amountOutMin = undefined;
+    return;
+  };
+
+  const bestPrice = await getBestPrice(
+    swapInput.value.fromChain,
+    swapInput.value.fromToken,
+    swapInput.value.toToken,
+    Converter.toWei(swapInput.value.amountIn)
+  );
+
+  if (!bestPrice) return;
+
+  swapInput.value.amountOutMin = Converter.fromWei(bestPrice.amountOut);
+  swapInput.value.router = bestPrice.router;
+};
+
+
+const updateBalances = async () => {
+  if (addressStore.address) {
+    const balanceIn = await getTokenBalance(
+      swapInput.value.fromToken,
+      swapInput.value.fromChain,
+      addressStore.address
+    );
+
+    const balanceOut = await getTokenBalance(
+      swapInput.value.toToken,
+      swapInput.value.toChain,
+      addressStore.address
+    );
+
+    swapInput.value.balanceIn = Converter.fromWei(balanceIn);
+    swapInput.value.balanceOut = Converter.fromWei(balanceOut);
+  }
+};
+
+
+const updateApprovals = async () => {
+  if (addressStore.address) {
+    const allowance = await getAllowance(
+      swapInput.value.fromToken,
+      swapInput.value.fromChain,
+      addressStore.address,
+      honeyIds[swapInput.value.fromChain.chainId]
+    );
+
+    swapInput.value.approveIn = Converter.fromWei(allowance);
+  }
 };
 
 // ================= Modal Functions ================= //
@@ -103,6 +311,18 @@ onMounted(() => {
     },
   });
 });
+
+watch(
+  swapInput,
+  () => {
+    updateAmountOut();
+    updateBalances();
+    updateApprovals();
+  },
+  {
+    deep: true
+  }
+);
 </script>
 
 <template>
@@ -185,7 +405,13 @@ onMounted(() => {
             </div>
 
             <div class="swap_action">
-              <button @click="modal.open()">Connect Wallet</button>
+              <button v-if="!addressStore.address" @click="modal.open()">Connect Wallet</button>
+
+              <button v-else-if="addressStore.address && swapInput.approveIn < (swapInput.amountIn || 0)"
+                @click="approve">{{
+                  approving ? 'Approving..' : 'Approve ' }}</button>
+
+              <button v-else @click="swap">{{ swapping ? 'Swapping..' : 'Swap' }}</button>
             </div>
           </div>
 

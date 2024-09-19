@@ -3,6 +3,7 @@ export type Chain = {
     image: string;
     shortName: string;
     chainId: number;
+    explorerUrl: string;
     equitoSelector: number;
     faucetLink: string;
 };
@@ -11,11 +12,19 @@ export type Token = {
     name: string;
     symbol: string;
     image: string;
-    addresses: { [key: number]: string; };
+    addresses: { [key: number]: `0x${string}`; };
+    native?: boolean;
 };
 
 export type Router = {
     name: string;
-    image: string;
-    website: string;
+    routerURI: string;
 };
+
+export interface Notification {
+    title: string;
+    description: string;
+    category: string;
+    linkTitle?: string;
+    linkUrl?: string;
+}

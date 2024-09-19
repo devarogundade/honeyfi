@@ -6,23 +6,23 @@ const Converter = {
         return hash.substring(0, space) + '...' + hash.substring(hash.length - space, hash.length);
     },
 
-    fromWei: function (wei: string | number | bigint) {
+    fromWei: function (wei: | bigint): number {
         try {
-            if (wei == '' || wei == '0') return '0';
+            if (wei == BigInt(0)) return 0;
             return convert(wei, 'wei', 'ether');
         } catch (error) {
             console.error('ether', error);
-            return '0';
+            return 0;
         }
     },
 
-    toWei: function (ether: string | number | bigint) {
+    toWei: function (ether: string | number): bigint {
         try {
-            if (ether == '') return '0';
+            if (ether == '') return BigInt(0);
             return convert(ether, 'ether', 'wei');
         } catch (error) {
             console.error('wei', error);
-            return '0';
+            return BigInt(0);
         }
     },
 

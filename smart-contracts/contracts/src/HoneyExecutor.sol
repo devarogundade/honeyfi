@@ -13,14 +13,6 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
 
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    // =================== STRUCT =================== //
-
-    // Struct to store router information
-    struct Router {
-        string name;
-        string routerURI;
-    }
-
     // Mapping of DEX routers by address
     mapping(address => Router) public routers;
     address[] public routerIds; // Keeps track of registered routers
@@ -42,7 +34,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         address receiver = _msgSender();
 
         // Find the best router for the swap and get the best output amount for the given input
-        (uint256 bestAmountOut, address routerId) = _bestSwapETHToTokens(
+        (uint256 bestAmountOut, address routerId, ) = _bestSwapETHToTokens(
             amountIn,
             tokenOut
         );
@@ -84,7 +76,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         address receiver = _msgSender();
 
         // Find the best router for the swap and get the best output amount for the given input
-        (uint256 bestAmountOut, address routerId) = _bestSwapTokensToTokens(
+        (uint256 bestAmountOut, address routerId, ) = _bestSwapTokensToTokens(
             amountIn,
             tokenIn,
             tokenOut
@@ -121,14 +113,14 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         uint256 amountIn,
         address tokenIn,
         address tokenOut
-    ) external view override returns (uint256, address) {
+    ) external view override returns (uint256, address, Router memory) {
         return _bestSwapTokensToTokens(amountIn, tokenIn, tokenOut);
     }
 
     function bestSwapETHToTokens(
         uint256 amountIn,
         address tokenOut
-    ) external view override returns (uint256, address) {
+    ) external view override returns (uint256, address, Router memory) {
         return _bestSwapETHToTokens(amountIn, tokenOut);
     }
 
@@ -138,7 +130,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         uint256 amountIn,
         address tokenIn,
         address tokenOut
-    ) internal view returns (uint256, address) {
+    ) internal view returns (uint256, address, Router memory) {
         // Initialize variables to store the best price and the corresponding router's address.
         uint256 bestPrice;
         address bestRouterId;
@@ -166,13 +158,13 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         }
 
         // Return the best price and the corresponding router's address
-        return (bestPrice, bestRouterId);
+        return (bestPrice, bestRouterId, routers[bestRouterId]);
     }
 
     function _bestSwapETHToTokens(
         uint256 amountIn,
         address tokenOut
-    ) internal view returns (uint256, address) {
+    ) internal view returns (uint256, address routerId, Router memory) {
         // Initialize variables to store the best price and the corresponding router's address.
         uint256 bestPrice;
         address bestRouterId;
@@ -202,7 +194,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         }
 
         // Return the best price and the corresponding router's address
-        return (bestPrice, bestRouterId);
+        return (bestPrice, bestRouterId, routers[bestRouterId]);
     }
 
     // =================== ADMIN FUNCTIONS =================== //

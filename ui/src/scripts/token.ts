@@ -8,7 +8,8 @@ export const tokens: Token[] = [
         addresses: {
             421614: "0x",
             534351: "0x"
-        }
+        },
+        native: true
     },
     {
         name: "Binance",
@@ -16,7 +17,8 @@ export const tokens: Token[] = [
         image: "/images/bsc.png",
         addresses: {
             97: "0x"
-        }
+        },
+        native: true
     },
     {
         name: "Avalanche",
@@ -24,7 +26,8 @@ export const tokens: Token[] = [
         image: "/images/avax.png",
         addresses: {
             43113: "0x"
-        }
+        },
+        native: true
     },
     {
         name: "HoneyFi Bitcoin",

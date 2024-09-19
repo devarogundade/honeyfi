@@ -2,6 +2,12 @@
 pragma solidity <=0.8.24;
 
 interface IHoneyExecutor {
+    // Struct to store router information
+    struct Router {
+        string name;
+        string routerURI;
+    }
+
     function swapETHToTokens(
         uint256 amountIn,
         address tokenOut,
@@ -20,13 +26,13 @@ interface IHoneyExecutor {
     function bestSwapETHToTokens(
         uint256 amountIn,
         address tokenOut
-    ) external view returns (uint256, address);
+    ) external view returns (uint256, address routerId, Router memory);
 
     function bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
-    ) external view returns (uint256, address);
+    ) external view returns (uint256, address routerId, Router memory);
 
     function addRouter(
         string calldata name,

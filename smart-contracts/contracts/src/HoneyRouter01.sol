@@ -149,12 +149,15 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     }
 
     // =================== VIEW FUNCTIONS =================== //
+    function getEquitoFee() external view returns (uint256) {
+        return router.getFee(address(this));
+    }
 
     function bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
-    ) external view returns (uint256, address) {
+    ) external view returns (uint256, address, IHoneyExecutor.Router memory) {
         return
             IHoneyExecutor(EXECUTOR).bestSwapTokensToTokens(
                 amountIn,
@@ -166,7 +169,7 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     function bestSwapETHToTokens(
         uint256 amountIn,
         address tokenOut
-    ) external view returns (uint256, address) {
+    ) external view returns (uint256, address, IHoneyExecutor.Router memory) {
         return IHoneyExecutor(EXECUTOR).bestSwapETHToTokens(amountIn, tokenOut);
     }
 
