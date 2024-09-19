@@ -28,6 +28,8 @@ createWeb3Modal({
   enableAnalytics: true
 });
 
+const HUNDRED: number = 100;
+
 const modal = useWeb3Modal();
 const addressStore = useAddressStore();
 const tokenListModal = ref(false);
@@ -37,6 +39,7 @@ const activeChainIdReplaceIndex = ref(popularChains[0].chainId);
 
 const swapping = ref<boolean>(false);
 const approving = ref<boolean>(false);
+const slippaging = ref<boolean>(false);
 
 interface SwapInput {
   fromChain: Chain;
@@ -49,6 +52,7 @@ interface SwapInput {
   balanceIn: number;
   balanceOut: number;
   approveIn: number;
+  slippage: number;
 }
 
 const swapInput = ref<SwapInput>({
@@ -61,7 +65,8 @@ const swapInput = ref<SwapInput>({
   router: undefined,
   balanceIn: 0,
   balanceOut: 0,
-  approveIn: 0
+  approveIn: 0,
+  slippage: 1
 });
 
 // ================= Contract Functions ================= //
@@ -113,6 +118,9 @@ const swap = async () => {
   }
 
   swapping.value = true;
+  const swapAmountOutMin = swapInput.value.amountOutMin * (
+    (HUNDRED - swapInput.value.slippage) / HUNDRED
+  );
 
   const txHash = await swapTokens(
     swapInput.value.fromChain,
@@ -120,7 +128,7 @@ const swap = async () => {
     swapInput.value.fromToken,
     swapInput.value.toToken,
     Converter.toWei(swapInput.value.amountIn),
-    Converter.toWei(swapInput.value.amountOutMin)
+    Converter.toWei(swapAmountOutMin)
   );
 
   if (txHash) {
@@ -134,6 +142,8 @@ const swap = async () => {
 
     swapInput.value.amountIn = undefined;
     swapInput.value.amountOutMin = undefined;
+
+    updateBalances();
   } else {
     notify.push({
       title: 'Transaction failed',
@@ -257,7 +267,6 @@ const updateBalances = async () => {
   }
 };
 
-
 const updateApprovals = async () => {
   if (addressStore.address) {
     const allowance = await getAllowance(
@@ -269,6 +278,18 @@ const updateApprovals = async () => {
 
     swapInput.value.approveIn = Converter.fromWei(allowance);
   }
+};
+
+const refresh = () => {
+  updateAmountOut();
+  updateBalances();
+  updateApprovals();
+
+  notify.push({
+    title: 'Refreshed!',
+    description: 'Updating values and parameters.',
+    category: 'success'
+  });
 };
 
 // ================= Modal Functions ================= //
@@ -335,13 +356,21 @@ watch(
           </div>
 
           <div class="swap_tools">
-            <button class="swap_refresh">
+            <button class="swap_refresh" @click="refresh">
               <RefreshIcon />
             </button>
 
-            <button class="swap_slippage">
+            <button class="swap_slippage" @click="slippaging = !slippaging">
               <SortIcon />
-              <p>1.00% slippage</p>
+              <p>{{ swapInput.slippage.toFixed(2) }}% slippage</p>
+
+              <div class="swap_slippage_options" v-if="slippaging">
+                <button class="swap_slippage_option" @click="swapInput.slippage = 1">1%</button>
+                <button class="swap_slippage_option" @click="swapInput.slippage = 2">2%</button>
+                <button class="swap_slippage_option" @click="swapInput.slippage = 5">5%</button>
+
+                <input type="number" v-model="swapInput.slippage">
+              </div>
             </button>
           </div>
 
@@ -368,7 +397,7 @@ watch(
               </div>
 
               <div class="swap_price">
-                <p>$1.03</p>
+                <p>Bal: {{ Converter.toMoney(swapInput.balanceIn) }}</p>
               </div>
             </div>
 
@@ -400,7 +429,7 @@ watch(
               </div>
 
               <div class="swap_price">
-                <p>$0</p>
+                <p>Bal: {{ Converter.toMoney(swapInput.balanceOut) }}</p>
               </div>
             </div>
 
@@ -415,8 +444,11 @@ watch(
             </div>
           </div>
 
-          <div class="swap_info">
-            <p>1 hUSDT ≈ 0.9654806 hBTC</p>
+          <div class="swap_info" v-if="swapInput.router && swapInput.amountOutMin">
+            <p>
+              {{ Converter.toMoney(swapInput.amountIn) }} {{ swapInput.fromToken.symbol }} ≈
+              {{ Converter.toMoney(swapInput.amountOutMin) }} {{ swapInput.toToken.symbol }}
+            </p>
 
             <button class="swap_route">
               <img src="/images/pancakeswap.png" alt="">
@@ -487,6 +519,7 @@ watch(
   border-radius: 20px;
   border: 1px solid var(--border);
   padding: 4px 10px;
+  position: relative;
 }
 
 .swap_slippage svg {
@@ -498,6 +531,39 @@ watch(
   font-size: 12px;
   font-weight: 500;
   color: var(--tx-normal);
+}
+
+.swap_slippage_options {
+  position: absolute;
+  padding: 16px;
+  background: var(--bg);
+  border-radius: 12px;
+  z-index: 2;
+  right: 0;
+  top: 30px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid var(--border);
+}
+
+.swap_slippage_option {
+  height: 30px;
+  padding: 0 10px;
+  border-radius: 8px;
+  background: var(--bg-light);
+  color: var(--tx-semi);
+}
+
+.swap_slippage_options input {
+  border-radius: 8px;
+  background: var(--bg-light);
+  color: var(--tx-normal);
+  border: 1px solid var(--border);
+  outline: none;
+  width: 45px;
+  height: 30px;
+  padding: 0 10px;
 }
 
 .swap_box_child {
