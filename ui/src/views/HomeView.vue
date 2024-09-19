@@ -6,7 +6,6 @@ import OutIcon from '@/components/icons/OutIcon.vue';
 import SortIcon from '@/components/icons/SortIcon.vue';
 import TokenList from '@/components/TokenList.vue';
 import ChainList from '@/components/ChainList.vue';
-
 import { config, chains } from '@/scripts/config';
 import { onMounted, ref } from 'vue';
 import { popularChains } from '@/scripts/chains';
@@ -354,10 +353,6 @@ onMounted(() => {
   color: var(--tx-semi);
 }
 
-.chains_dropdown {
-  display: none;
-}
-
 .token {
   display: flex;
   align-items: center;
@@ -379,10 +374,6 @@ onMounted(() => {
   font-size: 14px;
   font-weight: 500;
   color: var(--tx-normal);
-}
-
-.tokens_dropdown {
-  display: none;
 }
 
 .swap_price p {

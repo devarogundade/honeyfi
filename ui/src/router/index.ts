@@ -10,9 +10,9 @@ const router = createRouter({
       component: HomeView
     },
     {
-      path: '/faucet',
-      name: 'faucet',
-      component: () => import('../views/FaucetView.vue')
+      path: '/pools',
+      name: 'pools',
+      component: () => import('../views/PoolsView.vue')
     }
   ]
 });

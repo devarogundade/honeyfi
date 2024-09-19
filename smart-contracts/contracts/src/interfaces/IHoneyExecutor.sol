@@ -2,6 +2,13 @@
 pragma solidity <=0.8.24;
 
 interface IHoneyExecutor {
+    function swapETHToTokens(
+        uint256 amountIn,
+        address tokenOut,
+        uint256 amountOutMin,
+        uint256 deadline
+    ) external payable returns (uint256);
+
     function swapTokensToTokens(
         address tokenIn,
         uint256 amountIn,
@@ -10,7 +17,12 @@ interface IHoneyExecutor {
         uint256 deadline
     ) external payable returns (uint256);
 
-    function bestRouter(
+    function bestSwapETHToTokens(
+        uint256 amountIn,
+        address tokenOut
+    ) external view returns (uint256, address);
+
+    function bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut

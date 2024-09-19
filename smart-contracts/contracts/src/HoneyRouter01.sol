@@ -5,6 +5,9 @@ import "./HoneyErrors.sol";
 import "../lib/libraries/EquitoMessageLibrary.sol";
 import {HoneyFeeMath} from "./lib/HoneyFeeMath.sol";
 import {IHoneyRouter01} from "./interfaces/IHoneyRouter01.sol";
+import {ITokenMap} from "./interfaces/ITokenMap.sol";
+import {HoneyFactory} from "./HoneyFactory.sol";
+import {IHoneyFactory} from "./interfaces/IHoneyFactory.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
@@ -20,17 +23,18 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
 
     address public EXECUTOR;
     address public TREASURY;
-    uint256 public immutable CHAIN_SELECTOR;
 
-    mapping(address => mapping(uint256 => address)) public _tokenPeers;
+    ITokenMap private tokenMap;
+    IHoneyFactory private factory;
 
     constructor(
+        address _tokenMap,
         address _router,
-        address _treasury,
-        uint256 _selector
+        address _treasury
     ) EquitoApp(_router) {
-        CHAIN_SELECTOR = _selector;
         TREASURY = _treasury;
+
+        tokenMap = ITokenMap(_tokenMap);
 
         EXECUTOR = address(new HoneyExecutor());
 
@@ -39,6 +43,58 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     }
 
     // =================== MUTABLE  =================== //
+
+    function swapETHToTokens(
+        address tokenOut,
+        uint256 amountOutMin,
+        uint256 deadline,
+        uint256 destinationChainSelector
+    ) external payable whenNotPaused {
+        address sender = _msgSender();
+
+        uint256 amountIn = msg.value;
+
+        /// @notice Get tokenOut balance of contract.
+        uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
+
+        /// @notice Calculate tokenOut amount required.
+        uint256 tokenOutAmountRequired = balanceBefore + amountOutMin;
+
+        uint256 amountOut = IHoneyExecutor(EXECUTOR).swapETHToTokens(
+            amountIn,
+            tokenOut,
+            amountOutMin,
+            deadline
+        );
+
+        uint256 balanceAfter = IERC20(tokenOut).balanceOf(address(this));
+
+        /// @notice Check if tokenOut balance of contract is sufficient.
+        if (balanceAfter < tokenOutAmountRequired) {
+            revert InsufficientOutputAmount(
+                tokenOutAmountRequired - balanceAfter,
+                amountOutMin
+            );
+        }
+
+        if (router.chainSelector() == destinationChainSelector) {
+            // no cross chain call
+            // transfer Tokens to sender
+            IERC20(tokenOut).safeTransfer(sender, amountOut);
+        } else {
+            // cross chain call to release Tokens on the destination chain.
+            _crossChainCall(
+                sender,
+                destinationChainSelector,
+                tokenOut,
+                amountOut
+            );
+        }
+    }
+
+    // UPCOMING: note that it is hard to get enough native
+    // coins for testing.
+    // function swapTokensToETH() external payable whenNotPaused {}
 
     function swapTokensToTokens(
         address tokenIn,
@@ -77,7 +133,7 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             );
         }
 
-        if (CHAIN_SELECTOR == destinationChainSelector) {
+        if (router.chainSelector() == destinationChainSelector) {
             // no cross chain call
             // transfer Tokens to sender
             IERC20(tokenOut).safeTransfer(sender, amountOut);
@@ -94,29 +150,39 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
 
     // =================== VIEW FUNCTIONS =================== //
 
-    function bestRouter(
+    function bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
     ) external view returns (uint256, address) {
-        return IHoneyExecutor(EXECUTOR).bestRouter(amountIn, tokenIn, tokenOut);
+        return
+            IHoneyExecutor(EXECUTOR).bestSwapTokensToTokens(
+                amountIn,
+                tokenIn,
+                tokenOut
+            );
+    }
+
+    function bestSwapETHToTokens(
+        uint256 amountIn,
+        address tokenOut
+    ) external view returns (uint256, address) {
+        return IHoneyExecutor(EXECUTOR).bestSwapETHToTokens(amountIn, tokenOut);
     }
 
     // =================== ADMIN FUNCTIONS =================== //
 
-    function addTokenPeer(
-        uint256 chainSelector,
-        address tokenA,
-        address tokenB
-    ) external onlyRole(ADMIN_ROLE) {
-        _tokenPeers[tokenA][chainSelector] = tokenB;
+    function updateFactory(
+        address newFactory
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        factory = IHoneyFactory(newFactory);
     }
 
-    function pause() external onlyRole(ADMIN_ROLE) {
+    function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _pause();
     }
 
-    function unPause() external onlyRole(ADMIN_ROLE) {
+    function unPause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
     }
 
@@ -136,25 +202,24 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
 
     function _releasedTokens(
         uint256 sourceChainSelector,
-        address tokenOut,
+        address peerToken,
         address receiver,
         uint256 amountOut
     ) internal {
+        address token = tokenMap.get(peerToken, sourceChainSelector);
+
+        // Withdraw from pool to contract
+        factory.withdrawFromPool(token, amountOut);
+
         (uint256 finalAmountOut, uint256 honeyFeeAmount) = HoneyFeeMath.split(
             amountOut
         );
 
         // transfer Tokens amount out to receiver
-        IERC20(_tokenPeers[tokenOut][sourceChainSelector]).safeTransfer(
-            receiver,
-            finalAmountOut
-        );
+        IERC20(token).safeTransfer(receiver, finalAmountOut);
 
         // transfer Tokens honey fee amount to treasury
-        IERC20(_tokenPeers[tokenOut][sourceChainSelector]).safeTransfer(
-            TREASURY,
-            honeyFeeAmount
-        );
+        IERC20(token).safeTransfer(TREASURY, honeyFeeAmount);
     }
 
     // =================== CROSS CHAIN =================== //

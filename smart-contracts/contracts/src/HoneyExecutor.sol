@@ -5,6 +5,7 @@ import "./HoneyErrors.sol";
 import {IHoneyExecutor} from "./interfaces/IHoneyExecutor.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract HoneyExecutor is IHoneyExecutor, AccessControl {
@@ -31,6 +32,47 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
 
     // =================== MUTABLE FUNCTIONS =================== //
 
+    function swapETHToTokens(
+        uint256 amountIn, // Amount of tokenIn to swap
+        address tokenOut, // Address of the token being swapped to
+        uint256 amountOutMin, // Minimum amount of tokenOut the user expects to receive
+        uint256 deadline // Time by which the swap must be completed (for time-based expiration)
+    ) external payable returns (uint256) {
+        // Receiver of the swapped tokens is the caller of this function
+        address receiver = _msgSender();
+
+        // Find the best router for the swap and get the best output amount for the given input
+        (uint256 bestAmountOut, address routerId) = _bestSwapETHToTokens(
+            amountIn,
+            tokenOut
+        );
+
+        address tokenIn = IUniswapV2Router01(routerId).WETH();
+
+        // Revert the transaction if the best output amount is less than the minimum specified by the user
+        if (bestAmountOut < amountOutMin) {
+            revert InsufficientOutputAmount(bestAmountOut, amountOutMin);
+        }
+
+        // Create a path for the swap (tokenIn -> tokenOut)
+        address[] memory path = new address[](2);
+        path[0] = tokenIn; // Start with tokenIn
+        path[1] = tokenOut; // End with tokenOut
+
+        // Execute the token swap on the selected router
+        // swapExactTokensForTokens performs the actual swap and returns an array of output amounts
+        uint256[] memory amountsOut = IUniswapV2Router01(routerId)
+            .swapExactETHForTokens{value: amountIn}(
+            amountOutMin, // The minimum output token amount
+            path, // The swap path
+            receiver, // Address that will receive the swapped tokens
+            deadline // The deadline by which the swap must be completed
+        );
+
+        // Return the actual output amount (the last value in the amountsOut array)
+        return amountsOut[amountsOut.length - 1];
+    }
+
     function swapTokensToTokens(
         address tokenIn, // Address of the token being swapped from
         uint256 amountIn, // Amount of tokenIn to swap
@@ -42,7 +84,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         address receiver = _msgSender();
 
         // Find the best router for the swap and get the best output amount for the given input
-        (uint256 bestAmountOut, address routerId) = _bestRouter(
+        (uint256 bestAmountOut, address routerId) = _bestSwapTokensToTokens(
             amountIn,
             tokenIn,
             tokenOut
@@ -75,17 +117,24 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         return amountsOut[amountsOut.length - 1];
     }
 
-    function bestRouter(
+    function bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
     ) external view override returns (uint256, address) {
-        return _bestRouter(amountIn, tokenIn, tokenOut);
+        return _bestSwapTokensToTokens(amountIn, tokenIn, tokenOut);
+    }
+
+    function bestSwapETHToTokens(
+        uint256 amountIn,
+        address tokenOut
+    ) external view override returns (uint256, address) {
+        return _bestSwapETHToTokens(amountIn, tokenOut);
     }
 
     // =================== INTERNAL FUNCTIONS =================== //
 
-    function _bestRouter(
+    function _bestSwapTokensToTokens(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
@@ -96,6 +145,42 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
 
         // Loop through all router addresses stored in routerIds
         for (uint256 i = 0; i < routerIds.length; i++) {
+            // Create a path array for the swap on the current router
+            address[] memory path = new address[](2);
+            path[0] = tokenIn; // Set tokenIn as the first element
+            path[1] = tokenOut; // Set tokenOut as the second element
+
+            // Get the output amount (price) for the given amountIn using the current router
+            // IUniswapV2Router01 is an interface for the router, calling getAmountsOut to simulate the swap
+            uint256[] memory amountsOut = IUniswapV2Router01(routerIds[i])
+                .getAmountsOut(amountIn, path);
+
+            // The price is the last element in the amountsOut array (the amount of tokenOut you receive)
+            uint256 price = amountsOut[amountsOut.length - 1];
+
+            // Compare the price to the current bestPrice and update if this one is better
+            if (price > bestPrice) {
+                bestPrice = price; // Update the best price
+                bestRouterId = routerIds[i]; // Update the router that gives the best price
+            }
+        }
+
+        // Return the best price and the corresponding router's address
+        return (bestPrice, bestRouterId);
+    }
+
+    function _bestSwapETHToTokens(
+        uint256 amountIn,
+        address tokenOut
+    ) internal view returns (uint256, address) {
+        // Initialize variables to store the best price and the corresponding router's address.
+        uint256 bestPrice;
+        address bestRouterId;
+
+        // Loop through all router addresses stored in routerIds
+        for (uint256 i = 0; i < routerIds.length; i++) {
+            address tokenIn = IUniswapV2Router01(routerIds[i]).WETH();
+
             // Create a path array for the swap on the current router
             address[] memory path = new address[](2);
             path[0] = tokenIn; // Set tokenIn as the first element

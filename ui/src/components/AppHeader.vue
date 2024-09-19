@@ -44,8 +44,8 @@ onMounted(() => {
                         <RouterLink to="/">
                             <button class="tab tab_active">Swap</button>
                         </RouterLink>
-                        <RouterLink to="/faucet">
-                            <button class="tab">Faucet</button>
+                        <RouterLink to="/pools">
+                            <button class="tab">hPools</button>
                         </RouterLink>
                     </nav>
                 </div>

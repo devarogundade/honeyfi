@@ -2,10 +2,10 @@ import { vars } from "hardhat/config";
 import "@nomicfoundation/hardhat-toolbox";
 
 const MNEMONIC = vars.get("MNEMONIC");
-// const BSC_API_KEY = vars.get("BSC_API_KEY");
-// const ARBITRUM_API_KEY = vars.get("ARBITRUM_API_KEY");
-// const AVALANCHE_API_KEY = vars.get("AVALANCHE_API_KEY");
-// const SCROLL_API_KEY = vars.get("SCROLL_API_KEY");
+
+const BSC_API_KEY = vars.get("BSC_API_KEY");
+const ARBITRUM_API_KEY = vars.get("ARBITRUM_API_KEY");
+const SCROLL_API_KEY = vars.get("SCROLL_API_KEY");
 
 module.exports = {
   solidity: {
@@ -50,10 +50,9 @@ module.exports = {
   },
   etherscan: {
     apiKey: {
-      // bsc: BSC_API_KEY,
-      // arbitrum: ARBITRUM_API_KEY,
-      // avalanche: AVALANCHE_API_KEY,
-      // scroll: SCROLL_API_KEY
+      bsc: BSC_API_KEY,
+      arbitrum: ARBITRUM_API_KEY,
+      scroll: SCROLL_API_KEY
     },
     customChains: [
       {
@@ -62,14 +61,6 @@ module.exports = {
         urls: {
           apiURL: 'https://api-testnet.bscscan.com/api',
           browserURL: 'https://testnet.bscscan.com/',
-        },
-      },
-      {
-        network: 'polygon',
-        chainId: 80002,
-        urls: {
-          apiURL: 'https://api-amoy.polygonscan.com/api',
-          browserURL: 'https://amoy.polygonscan.com/',
         },
       },
       {

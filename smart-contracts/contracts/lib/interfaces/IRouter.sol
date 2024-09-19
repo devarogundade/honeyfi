@@ -4,9 +4,18 @@ pragma solidity ^0.8.23;
 
 import {bytes64, EquitoMessage} from "../libraries/EquitoMessageLibrary.sol";
 
+/// @title IEquitoFees
+/// @notice Interface for the IEquitoFees contract, used to collect fees for Message Send transactions.
+interface IEquitoFees {
+    /// @notice Gets the current fee amount required to send a Message.
+    /// @param sender The address of the Message Sender, usually an Equito App.
+    /// @return The current fee amount in wei.
+    function getFee(address sender) external view returns (uint256);
+}
+
 /// @title IRouter
 /// @notice Interface for the Router contract, used to interact with the cross-chain messaging protocol.
-interface IRouter {
+interface IRouter is IEquitoFees {
     /// @notice Emitted when a message send request is created.
     /// @param message The message being sent.
     /// @param messageData The data of the message being sent.

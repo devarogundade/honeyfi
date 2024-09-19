@@ -6,6 +6,8 @@ error InsufficientWalletBalance(
     uint256 balance,
     uint256 balanceNeeded
 );
+error AlreadyExists();
+error NotCreated();
 error SwapDoesNotExist(bytes32 orderId);
 error SwapQuantityIsZero();
 error InsufficientSwapInputValue();
