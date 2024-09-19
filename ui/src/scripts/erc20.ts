@@ -9,10 +9,13 @@ export async function getAllowance(
     address: `0x${string}`,
     spender: `0x${string}`
 ): Promise<bigint> {
+    if (token.name) return BigInt(Number.MAX_VALUE);
+    if (!token.addresses[chain.chainId]) return BigInt(0);
+
     try {
         return await readContract(config, {
             abi: erc20Abi,
-            address: token.addresses[chain.chainId],
+            address: token.addresses[chain.chainId]!,
             functionName: 'allowance',
             args: [address, spender],
             chainId: chain.chainId
@@ -29,12 +32,12 @@ export async function approveTokens(
     spender: `0x${string}`,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (token.native) return null;
+    if (token.native || !token.addresses[chain.chainId]) return null;
 
     try {
         const result = await writeContract(config, {
             abi: erc20Abi,
-            address: token.addresses[chain.chainId],
+            address: token.addresses[chain.chainId]!,
             functionName: 'approve',
             args: [spender, amount],
             chainId: chain.chainId
