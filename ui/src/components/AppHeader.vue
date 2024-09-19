@@ -47,6 +47,9 @@ onMounted(() => {
                         <RouterLink to="/pools">
                             <button :class="route.name == 'pools' ? 'tab tab_active' : 'tab'">Earn</button>
                         </RouterLink>
+                        <RouterLink to="/hive">
+                            <button :class="route.name == 'hive' ? 'tab tab_active' : 'tab'">Hive 🍯</button>
+                        </RouterLink>
                     </nav>
                 </div>
 
