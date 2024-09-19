@@ -71,7 +71,7 @@ onMounted(() => {
     <div class="app_width">
       <div class="pools_view">
         <div class="pools_title">
-          <h3>Earn by providing liquidity</h3>
+          <h3>Earn by providing liquidity.</h3>
 
           <button class="pools_title_chain" @click="openChainListModal()">
             <img :src="poolsInput.chain.image" :alt="poolsInput.chain.name">
@@ -153,14 +153,15 @@ onMounted(() => {
 </template>
 
 <style scoped>
+.pools_view {
+  padding-top: 40px;
+  padding-bottom: 80px;
+}
+
 .pools_title {
   display: flex;
   align-items: center;
   gap: 20px;
-}
-
-.pools_view {
-  padding: 40px 0;
 }
 
 .pools_title h3 {
@@ -194,10 +195,12 @@ onMounted(() => {
 }
 
 .pools_grid {
-  display: flex;
+  display: grid;
   justify-content: space-between;
   margin-top: 40px;
   gap: 40px;
+  grid-template-columns: 1fr 420px;
+  width: 100%;
 }
 
 .pools {
@@ -213,7 +216,6 @@ onMounted(() => {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
   align-items: center;
-  width: 800px;
   border: 1px solid transparent;
   max-width: 100%;
   cursor: pointer;
@@ -291,11 +293,6 @@ onMounted(() => {
 .tab_active {
   color: var(--tx-normal);
   border: 1px solid var(--border);
-}
-
-.liquidity_box {
-  width: 420px;
-  max-width: 100%;
 }
 
 .liquidity_box_child {
@@ -420,5 +417,38 @@ onMounted(() => {
   border-radius: 16px;
   background: var(--primary);
   cursor: pointer;
+}
+
+@media screen and (max-width: 1200px) {
+  .pools_title {
+    justify-content: center;
+  }
+
+  .pools_title_chain {
+    display: none;
+  }
+
+  .pools_grid {
+    grid-template-columns: 1fr 340px;
+  }
+}
+
+@media screen and (max-width: 1000px) {
+  .pools_view {
+    padding-top: 36px;
+    padding-bottom: 100px;
+  }
+
+  .pools_title h3 {
+    font-size: 36px;
+  }
+
+  .pools {
+    display: none;
+  }
+
+  .pools_grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>
