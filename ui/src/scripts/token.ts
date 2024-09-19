@@ -77,7 +77,7 @@ export const findTokensByNameOrAddress = (value: string, chainId: number): Token
     }
 
     return tokens.filter((t) => t.name.replace(" ", "").toLowerCase().includes(
-        value.replace(" ", "").toLowerCase()) &&
-        t.addresses[chainId].toLowerCase() == value.toLowerCase()
+        value.replace(" ", "").toLowerCase()) ||
+        t.addresses[chainId]?.toLowerCase() == value.toLowerCase()
     );
 };

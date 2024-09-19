@@ -12,7 +12,7 @@ export type Token = {
     name: string;
     symbol: string;
     image: string;
-    addresses: { [key: number]: `0x${string}`; };
+    addresses: { [key: number]: `0x${string}` | undefined; };
     native?: boolean;
 };
 

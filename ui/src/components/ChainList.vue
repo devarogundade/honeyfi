@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import OutIcon from './icons/OutIcon.vue';
+import SearchIcon from './icons/SearchIcon.vue';
 import CloseIcon from './icons/CloseIcon.vue';
 import { findChainsByName, popularChains } from '@/scripts/chains';
 import { ref } from 'vue';
