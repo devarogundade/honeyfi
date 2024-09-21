@@ -2,6 +2,7 @@ import { config } from './config';
 import { waitForTransactionReceipt, getBalance, writeContract, readContract } from '@wagmi/core';
 import { erc20Abi } from 'viem';
 import type { Token, Chain, Pool } from './types';
+import { WETH } from './token';
 
 export async function getAllowance(
     token: Token,
@@ -9,7 +10,7 @@ export async function getAllowance(
     address: `0x${string}`,
     spender: `0x${string}`
 ): Promise<bigint> {
-    if (token.native) return BigInt(Number.MAX_VALUE);
+    if (token.addresses[chain.chainId] == WETH) return BigInt(Number.MAX_VALUE);
     if (!token.addresses[chain.chainId]) return BigInt(0);
 
     try {
@@ -26,18 +27,62 @@ export async function getAllowance(
     }
 }
 
+export async function getLPAllowance(
+    pool: Pool,
+    chain: Chain,
+    address: `0x${string}`,
+    spender: `0x${string}`
+) {
+    try {
+        return await readContract(config, {
+            abi: erc20Abi,
+            address: pool.poolAddress,
+            functionName: 'allowance',
+            args: [address, spender],
+            chainId: chain.chainId
+        });
+    } catch (error) {
+        console.log(error);
+        return BigInt(0);
+    }
+}
+
 export async function approveTokens(
     token: Token,
     chain: Chain,
     spender: `0x${string}`,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (token.native || !token.addresses[chain.chainId]) return null;
+    if (token.addresses[chain.chainId] == WETH || !token.addresses[chain.chainId]) return null;
 
     try {
         const result = await writeContract(config, {
             abi: erc20Abi,
             address: token.addresses[chain.chainId]!,
+            functionName: 'approve',
+            args: [spender, amount],
+            chainId: chain.chainId
+        });
+
+        const receipt = await waitForTransactionReceipt(config, { hash: result });
+
+        return receipt.transactionHash;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+
+export async function approveLPTokens(
+    pool: Pool,
+    chain: Chain,
+    spender: `0x${string}`,
+    amount: bigint
+): Promise<`0x${string}` | null> {
+    try {
+        const result = await writeContract(config, {
+            abi: erc20Abi,
+            address: pool.poolAddress,
             functionName: 'approve',
             args: [spender, amount],
             chainId: chain.chainId
@@ -59,7 +104,7 @@ export async function getTokenBalance(
 ): Promise<bigint> {
     try {
         const { value } = await getBalance(config, {
-            token: token.native ? undefined : token.addresses[chain.chainId],
+            token: token.addresses[chain.chainId] == WETH ? undefined : token.addresses[chain.chainId],
             address,
             chainId: chain.chainId
         });
@@ -92,7 +137,7 @@ export async function getLPTokenBalance(
 
 export async function addToWallet(token: Token, chain: Chain): Promise<void> {
     try {
-        if (token.native) return;
+        if (token.addresses[chain.chainId] == WETH) return;
 
         // @ts-ignore
         await ethereum.request({

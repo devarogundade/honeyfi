@@ -1,7 +1,7 @@
 import type { Chain, Pool } from "./types";
 import { waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { config } from "./config";
-import { poolTokenAbi } from "@/abis/honey-pools";
+import { poolTokenAbi, poolETHAbi } from "@/abis/honey-pools";
 import { getEquitoFee } from "./swap";
 import { WETH } from "./token";
 
@@ -61,7 +61,7 @@ async function addLiquidityETH(
 ): Promise<`0x${string}` | null> {
     try {
         const result = await writeContract(config, {
-            abi: poolTokenAbi,
+            abi: poolETHAbi,
             address: pool.poolAddress,
             functionName: 'addLiquidity',
             chainId: chain.chainId,
@@ -121,7 +121,7 @@ async function removeLiquidityETH(
         equitoFee = await getEquitoFee(chain);
 
         const result = await writeContract(config, {
-            abi: poolTokenAbi,
+            abi: poolETHAbi,
             address: pool.poolAddress,
             functionName: 'removeLiquidity',
             args: [

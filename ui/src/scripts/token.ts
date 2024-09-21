@@ -8,6 +8,7 @@ export const tokens: Token[] = [
         symbol: "ETH",
         image: "/images/eth.png",
         addresses: {
+            97: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
             421614: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
         }
     },
@@ -16,7 +17,8 @@ export const tokens: Token[] = [
         symbol: "BNB",
         image: "/images/bsc.png",
         addresses: {
-            97: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"
+            97: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
+            421614: "0xaAAb8EE63b5aad589d834261b1dbfac59d681c5D"
         }
     },
     {
@@ -25,7 +27,7 @@ export const tokens: Token[] = [
         image: "/images/btc.png",
         addresses: {
             97: "0x",
-            421614: "0xEc61052fDaaE48fDF494e76B618F8072EAeC4a2A"
+            421614: "0x3d269Ea3641fB768Ce7069BB9b73fccc880b9Da6"
         }
     },
     {
@@ -34,7 +36,7 @@ export const tokens: Token[] = [
         image: "/images/usdt.png",
         addresses: {
             97: "0x",
-            421614: "0xdDb3B931BD891740196385dff784849952f86508"
+            421614: "0xd331af3CB5894A90C328eF4F527a032b53a5D8bE"
         }
     }
 ];

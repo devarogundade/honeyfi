@@ -13,9 +13,7 @@ export interface BestPrice {
 
 export const honeyAddresses: { [key: number]: `0x${string}`; } = {
     97: '0x',
-    421614: '0xA737dd6fB5Fa617540e1A359b0100Fa7875E9518',
-    43113: '0x',
-    534351: '0xbD8464dD271e0d9549E7D68757A65b9863e26414',
+    421614: '0x5Ad213b02Ee414C2EaBe004A61774207faC5113c'
 };
 
 // in seconds

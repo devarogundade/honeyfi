@@ -80,7 +80,7 @@ contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
         // Burn the LP tokens
         _burn(sender, lpTokens);
 
-        uint256 poolBalance = address(this).balance;
+        uint256 poolBalance = balanceOf(address(this));
 
         if (poolBalance < amount) {
             uint256 equitoFee = _factory.getEquitoFee();

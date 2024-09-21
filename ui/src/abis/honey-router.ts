@@ -383,6 +383,23 @@ export const honeyRouterAbi = [
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "routerURI",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct IHoneyExecutor.Router",
+                "name": "",
+                "type": "tuple"
             }
         ],
         "stateMutability": "view",
@@ -417,6 +434,36 @@ export const honeyRouterAbi = [
                 "internalType": "address",
                 "name": "",
                 "type": "address"
+            },
+            {
+                "components": [
+                    {
+                        "internalType": "string",
+                        "name": "name",
+                        "type": "string"
+                    },
+                    {
+                        "internalType": "string",
+                        "name": "routerURI",
+                        "type": "string"
+                    }
+                ],
+                "internalType": "struct IHoneyExecutor.Router",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
+        "name": "getEquitoFee",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",

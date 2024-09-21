@@ -4,6 +4,7 @@ import HoneyFactoryModule from "./HoneyFactoryARBITRUM";
 import { EquitoRouters, WETH } from "./EquitoRouters";
 import HUSDTModule from "./HUSDT";
 import HBTCModule from "./HBTC";
+import WBNBModule from "./WBNB";
 
 const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (m) => {
     const treasury = "0x60E0a0eAd051314E7510AE803334A97f13E6ff21";
@@ -13,6 +14,7 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
 
     const { hbtc } = m.useModule(HBTCModule);
     const { husdt } = m.useModule(HUSDTModule);
+    const { wbnb } = m.useModule(WBNBModule);
 
     const honeyFeeMath = m.library("HoneyFeeMath");
 
@@ -31,6 +33,8 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
     m.call(honeyRouter01, "updateFactory", [honeyFactory]);
 
     m.call(honeyFactory, "createPool", [WETH], { id: 'eth' });
+
+    m.call(honeyFactory, "createPool", [wbnb], { id: 'wbnb' });
 
     m.call(honeyFactory, "createPool", [hbtc], { id: 'hbtc' });
 

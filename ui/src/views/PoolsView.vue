@@ -12,7 +12,7 @@ import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { switchChain, watchAccount } from '@wagmi/core';
 import Converter from '@/scripts/converter';
-import { approveTokens, getAllowance, getLPTokenBalance, getTokenBalance } from '@/scripts/erc20';
+import { approveTokens, approveLPTokens, getAllowance, getLPTokenBalance, getLPAllowance, getTokenBalance } from '@/scripts/erc20';
 import { getPool } from '@/scripts/pools';
 import { notify } from '@/reactives/notify';
 import { addLiquidity, removeLiquidity } from '@/scripts/liquidity';
@@ -262,12 +262,23 @@ const approve = async () => {
 
   approving.value = true;
 
-  const txHash = await approveTokens(
-    poolsInput.value.token,
-    poolsInput.value.chain,
-    pool.poolAddress,
-    Converter.toWei(poolsInput.value.amount)
-  );
+  let txHash: `0x${string}` | null = null;
+
+  if (poolsInput.value.mode == Mode.DEPOSIT) {
+    txHash = await approveTokens(
+      poolsInput.value.token,
+      poolsInput.value.chain,
+      pool.poolAddress,
+      Converter.toWei(poolsInput.value.amount)
+    );
+  } else {
+    txHash = await approveLPTokens(
+      pool,
+      poolsInput.value.chain,
+      pool.poolAddress,
+      Converter.toWei(poolsInput.value.amount)
+    );
+  }
 
   if (txHash) {
     notify.push({
@@ -280,7 +291,11 @@ const approve = async () => {
 
     updateApprovals();
 
-    deposit();
+    if (poolsInput.value.mode == Mode.DEPOSIT) {
+      deposit();
+    } else {
+      withdraw();
+    }
   } else {
     notify.push({
       title: 'Transaction failed',
@@ -337,9 +352,20 @@ const updateApprovals = async () => {
 
   if (!pool) return;
 
-  if (addressStore.address) {
+  if (!addressStore.address) return;
+
+  if (poolsInput.value.mode == Mode.DEPOSIT) {
     const allowance = await getAllowance(
       poolsInput.value.token,
+      poolsInput.value.chain,
+      addressStore.address,
+      pool.poolAddress
+    );
+
+    poolsInput.value.approve = Converter.fromWei(allowance);
+  } else {
+    const allowance = await getLPAllowance(
+      pool,
       poolsInput.value.chain,
       addressStore.address,
       pool.poolAddress
