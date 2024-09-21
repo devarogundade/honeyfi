@@ -1,7 +1,7 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import TokenMapModule from "./TokenMap";
 import HoneyFactoryModule from "./HoneyFactoryARBITRUM";
-import { EquitoRouters } from "./EquitoRouters";
+import { EquitoRouters, WETH } from "./EquitoRouters";
 import HUSDTModule from "./HUSDT";
 import HBTCModule from "./HBTC";
 
@@ -29,6 +29,8 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
     m.call(honeyFactory, "addRouter", [honeyRouter01]);
 
     m.call(honeyRouter01, "updateFactory", [honeyFactory]);
+
+    m.call(honeyFactory, "createPool", [WETH], { id: 'eth' });
 
     m.call(honeyFactory, "createPool", [hbtc], { id: 'hbtc' });
 

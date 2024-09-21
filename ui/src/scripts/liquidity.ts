@@ -3,13 +3,14 @@ import { waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { config } from "./config";
 import { poolTokenAbi } from "@/abis/honey-pools";
 import { getEquitoFee } from "./swap";
+import { WETH } from "./token";
 
 export async function addLiquidity(
     pool: Pool,
     chain: Chain,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (pool.isETHPool) {
+    if (pool.tokenAddress == WETH) {
         return addLiquidityETH(pool, chain, amount);
     }
 
@@ -22,7 +23,7 @@ export async function removeLiquidity(
     secondaryChain: Chain,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (pool.isETHPool) {
+    if (pool.tokenAddress == WETH) {
         return removeLiquidityETH(pool, chain, secondaryChain, amount);
     }
 

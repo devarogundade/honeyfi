@@ -5,7 +5,6 @@ const MNEMONIC = vars.get("MNEMONIC");
 
 const BSC_API_KEY = vars.get("BSC_API_KEY");
 const ARBITRUM_API_KEY = vars.get("ARBITRUM_API_KEY");
-const SCROLL_API_KEY = vars.get("SCROLL_API_KEY");
 
 module.exports = {
   solidity: {
@@ -32,27 +31,12 @@ module.exports = {
       accounts: {
         mnemonic: MNEMONIC
       },
-    },
-    avalanche: {
-      url: 'https://avax-pokt.nodies.app/ext/bc/C/rpc',
-      chainId: 43113,
-      accounts: {
-        mnemonic: MNEMONIC
-      },
-    },
-    scroll: {
-      url: 'https://scroll-public.scroll-testnet.quiknode.pro',
-      chainId: 534351,
-      accounts: {
-        mnemonic: MNEMONIC
-      },
     }
   },
   etherscan: {
     apiKey: {
       bsc: BSC_API_KEY,
-      arbitrum: ARBITRUM_API_KEY,
-      scroll: SCROLL_API_KEY
+      arbitrum: ARBITRUM_API_KEY
     },
     customChains: [
       {
@@ -69,22 +53,6 @@ module.exports = {
         urls: {
           apiURL: 'https://api-sepolia.arbiscan.io/api',
           browserURL: 'https://sepolia.arbiscan.io/',
-        },
-      },
-      {
-        network: 'avalanche',
-        chainId: 43113,
-        urls: {
-          apiURL: 'https://api.routescan.io/v2/network/testnet/evm/43113/etherscan/api',
-          browserURL: 'https://testnet.snowtrace.io/',
-        },
-      },
-      {
-        network: 'scroll',
-        chainId: 534351,
-        urls: {
-          apiURL: 'https://api-sepolia.scrollscan.com/api',
-          browserURL: 'https://sepolia.scrollscan.com/',
         },
       }
     ],

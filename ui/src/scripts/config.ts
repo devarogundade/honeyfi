@@ -1,4 +1,4 @@
-import { bscTestnet, avalancheFuji, arbitrumSepolia, scrollSepolia } from '@wagmi/core/chains';
+import { bscTestnet, arbitrumSepolia } from '@wagmi/core/chains';
 import { walletConnect } from '@wagmi/connectors';
 import { defaultWagmiConfig } from '@web3modal/wagmi';
 
@@ -9,7 +9,7 @@ const metadata = {
     icons: ['https://avatars.githubusercontent.com/u/37784886']
 };
 
-export const chains = [bscTestnet, avalancheFuji, arbitrumSepolia, scrollSepolia];
+export const chains = [bscTestnet, arbitrumSepolia];
 
 export const config = defaultWagmiConfig({
     // @ts-ignore

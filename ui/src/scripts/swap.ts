@@ -3,6 +3,7 @@ import { readContract, waitForTransactionReceipt, writeContract } from "@wagmi/c
 import { config } from "./config";
 import { honeyRouterAbi } from "@/abis/honey-router";
 import { poolTokenAbi } from "@/abis/honey-pools";
+import { WETH } from "./token";
 
 export interface BestPrice {
     amountOut: bigint,
@@ -30,7 +31,7 @@ export async function swapTokens(
     amountIn: bigint,
     amountOutMin: bigint
 ): Promise<`0x${string}` | null> {
-    if (fromToken.native) {
+    if (fromToken.addresses[fromChain.chainId] == WETH) {
         return await swapETHToTokens(
             fromChain,
             toChain,
@@ -38,7 +39,7 @@ export async function swapTokens(
             amountIn,
             amountOutMin
         );
-    } else if (toToken.native) {
+    } else if (toToken.addresses[fromChain.chainId] == WETH) {
         // TO DO
         return null;
     } else {
@@ -59,13 +60,13 @@ export async function getBestPrice(
     toToken: Token,
     amountIn: bigint
 ): Promise<BestPrice | null> {
-    if (fromToken.native) {
+    if (fromToken.addresses[fromChain.chainId] == WETH) {
         return await bestSwapETHToTokens(
             fromChain,
             toToken,
             amountIn
         );
-    } else if (toToken.native) {
+    } else if (toToken.addresses[fromChain.chainId] == WETH) {
         // TO DO
         return null;
     } else {
@@ -83,7 +84,7 @@ export async function addLiquidity(
     chain: Chain,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (pool.isETHPool) {
+    if (pool.tokenAddress == WETH) {
         return addLiquidityETH(pool, chain, amount);
     }
 
@@ -96,7 +97,7 @@ export async function removeLiquidity(
     secondaryChain: Chain,
     amount: bigint
 ): Promise<`0x${string}` | null> {
-    if (pool.isETHPool) {
+    if (pool.tokenAddress == WETH) {
         return removeLiquidityETH(pool, chain, secondaryChain, amount);
     }
 
@@ -245,6 +246,9 @@ async function bestSwapTokensToTokens(
     toToken: Token,
     amountIn: bigint
 ): Promise<BestPrice | null> {
+    if (!fromToken.addresses[fromChain.chainId]) return null;
+    if (!toToken.addresses[fromChain.chainId]) return null;
+
     try {
         const result = await readContract(config, {
             abi: honeyRouterAbi,
@@ -273,6 +277,8 @@ async function swapETHToTokens(
     amountIn: bigint,
     amountOutMin: bigint
 ): Promise<`0x${string}` | null> {
+    if (!toToken.addresses[toChain.chainId]) return null;
+
     try {
         const result = await writeContract(config, {
             abi: honeyRouterAbi,
@@ -282,7 +288,7 @@ async function swapETHToTokens(
                 toToken.addresses[toChain.chainId],
                 amountOutMin,
                 DEFAULT_DDL(),
-                toChain.chainId
+                toChain.equitoSelector
             ],
             value: amountIn,
             chainId: fromChain.chainId
@@ -305,6 +311,9 @@ async function swapTokensToTokens(
     amountIn: bigint,
     amountOutMin: bigint
 ): Promise<`0x${string}` | null> {
+    if (!fromToken.addresses[fromChain.chainId]) return null;
+    if (!toToken.addresses[toChain.chainId]) return null;
+
     try {
         let equitoFee = BigInt(0);
 
@@ -323,7 +332,7 @@ async function swapTokensToTokens(
                 toToken.addresses[toChain.chainId],
                 amountOutMin,
                 DEFAULT_DDL(),
-                toChain.chainId
+                toChain.equitoSelector
             ],
             value: equitoFee,
             chainId: fromChain.chainId

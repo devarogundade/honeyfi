@@ -13,14 +13,12 @@ export type Token = {
     symbol: string;
     image: string;
     addresses: { [key: number]: `0x${string}` | undefined; };
-    native?: boolean;
 };
 
 export type Pool = {
     chainId: number;
     tokenAddress: `0x${string}`;
     poolAddress: `0x${string}`;
-    isETHPool: boolean;
 };
 
 export type Router = {
