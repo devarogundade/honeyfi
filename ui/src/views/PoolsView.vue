@@ -10,7 +10,7 @@ import { findChainTokens } from '@/scripts/token';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
-import { watchAccount } from '@wagmi/core';
+import { switchChain, watchAccount } from '@wagmi/core';
 import Converter from '@/scripts/converter';
 import { approveTokens, getAllowance, getLPTokenBalance, getTokenBalance } from '@/scripts/erc20';
 import { getPool } from '@/scripts/pools';
@@ -365,9 +365,11 @@ const tokenChanged = (token: Token) => {
   tokenListModal.value = false;
 };
 
-const chainChanged = (chain: Chain) => {
+const chainChanged = async (chain: Chain) => {
   poolsInput.value.chain = chain;
   poolsInput.value.token = findChainTokens(chain.chainId)[0];
+
+  await switchChain(config, { chainId: chain.chainId });
 
   chainListModal.value = false;
 };
@@ -449,7 +451,7 @@ watch(
                 </div>
 
                 <div class="liquidity_input">
-                  <input type="number" placeholder="0">
+                  <input type="number" v-model="poolsInput.amount" placeholder="0">
 
                   <button class="token" @click="openTokenListModal()">
                     <img :src="poolsInput.token.image" :alt="poolsInput.token.name">

@@ -20,7 +20,7 @@ module.exports = {
   },
   networks: {
     bsc: {
-      url: 'wss://bsc-testnet-rpc.publicnode.com',
+      url: 'https://bsc-testnet.blockpi.network/v1/rpc/public',
       chainId: 97,
       accounts: {
         mnemonic: MNEMONIC

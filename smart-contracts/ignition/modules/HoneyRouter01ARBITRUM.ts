@@ -18,7 +18,7 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
 
     const honeyRouter01 = m.contract(
         "HoneyRouter01",
-        [honeyFactory, tokenMap, EquitoRouters.ARBITRUM, treasury],
+        [tokenMap, EquitoRouters.ARBITRUM, treasury],
         {
             libraries: {
                 HoneyFeeMath: honeyFeeMath
@@ -33,6 +33,12 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
     m.call(honeyFactory, "createPool", [hbtc], { id: 'hbtc' });
 
     m.call(honeyFactory, "createPool", [husdt], { id: 'husdt' });
+
+    m.call(honeyRouter01, "addRouter", [
+        "Pancakeswap",
+        "{\"image\": \"/images/pancakeswap.png\", \"url\": \"https://pancakeswap.finance\"}",
+        "0x8cFe327CEc66d1C090Dd72bd0FF11d690C33a2Eb"
+    ]);
 
     return { honeyRouter01 };
 });

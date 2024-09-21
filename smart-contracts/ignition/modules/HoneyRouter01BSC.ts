@@ -34,6 +34,12 @@ const HoneyRouter01ModuleBSC = buildModule("HoneyRouter01ModuleBSC", (m) => {
 
     m.call(honeyFactory, "createPool", [husdt], { id: 'husdt' });
 
+    m.call(honeyRouter01, "addRouter", [
+        "Pancakeswap",
+        "{\"image\": \"/images/pancakeswap.png\", \"url\": \"https://pancakeswap.finance\"}",
+        "0x10ED43C718714eb63d5aA57B78B54704E256024E"
+    ]);
+
     return { honeyRouter01 };
 });
 

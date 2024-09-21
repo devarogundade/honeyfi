@@ -17,7 +17,7 @@ import type { Chain, Token, Router } from '@/scripts/types';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
-import { watchAccount } from '@wagmi/core';
+import { switchChain, watchAccount } from '@wagmi/core';
 import Converter from '@/scripts/converter';
 
 createWeb3Modal({
@@ -215,7 +215,7 @@ const approve = async () => {
   approving.value = false;
 };
 
-const flip = () => {
+const flip = async () => {
   const tempFromChain = swapInput.value.fromChain;
   const tempFromToken = swapInput.value.fromToken;
 
@@ -224,6 +224,8 @@ const flip = () => {
 
   swapInput.value.toChain = tempFromChain;
   swapInput.value.toToken = tempFromToken;
+
+  await switchChain(config, { chainId: swapInput.value.fromChain.chainId });
 };
 
 // ================= UX Functions ================= //
@@ -314,9 +316,11 @@ const tokenChanged = (token: Token) => {
   tokenListModal.value = false;
 };
 
-const chainChanged = (chain: Chain) => {
+const chainChanged = async (chain: Chain) => {
   if (replaceIndex.value == 0) {
     swapInput.value.fromChain = chain;
+
+    await switchChain(config, { chainId: chain.chainId });
   } else {
     swapInput.value.toChain = chain;
   }

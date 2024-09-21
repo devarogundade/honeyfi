@@ -12,7 +12,7 @@ contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
     using SafeERC20 for ERC20;
     bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
-    uint256 private constant MINIMAL_LIQUIDITY = 10_000;
+    uint256 private constant MINIMAL_LIQUIDITY = 10_000 * 1e18;
 
     // Address of the ERC20 token being used in the pool
     address public immutable token;

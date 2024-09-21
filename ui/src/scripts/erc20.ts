@@ -9,7 +9,7 @@ export async function getAllowance(
     address: `0x${string}`,
     spender: `0x${string}`
 ): Promise<bigint> {
-    if (token.name) return BigInt(Number.MAX_VALUE);
+    if (token.native) return BigInt(Number.MAX_VALUE);
     if (!token.addresses[chain.chainId]) return BigInt(0);
 
     try {
