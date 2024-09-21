@@ -1,6 +1,6 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import TokenMapModule from "./TokenMap";
-import HoneyFactoryModule from "./HoneyFactorySCROLL";
+import HoneyFactoryModule from "./HoneyFactoryARBITRUM";
 import { EquitoRouters } from "./EquitoRouters";
 
 const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (m) => {
@@ -20,6 +20,10 @@ const HoneyRouter01ModuleARBITRUM = buildModule("HoneyRouter01ModuleARBITRUM", (
             }
         }
     );
+
+    m.call(honeyFactory, "addRouter", [honeyRouter01]);
+
+    m.call(honeyRouter01, "updateFactory", [honeyFactory]);
 
     return { honeyRouter01 };
 });
