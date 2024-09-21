@@ -30,9 +30,9 @@ const HoneyRouter01ModuleSCROLL = buildModule("HoneyRouter01ModuleSCROLL", (m) =
 
     m.call(honeyRouter01, "updateFactory", [honeyFactory]);
 
-    m.call(honeyFactory, "createPool", [hbtc]);
+    m.call(honeyFactory, "createPool", [hbtc], { id: 'hbtc' });
 
-    m.call(honeyFactory, "createPool", [husdt]);
+    m.call(honeyFactory, "createPool", [husdt], { id: 'husdt' });
 
     return { honeyRouter01 };
 });
