@@ -1,7 +1,7 @@
 import { config } from './config';
 import { waitForTransactionReceipt, getBalance, writeContract, readContract } from '@wagmi/core';
 import { erc20Abi } from 'viem';
-import type { Token, Chain } from './types';
+import type { Token, Chain, Pool } from './types';
 
 export async function getAllowance(
     token: Token,
@@ -60,6 +60,25 @@ export async function getTokenBalance(
     try {
         const { value } = await getBalance(config, {
             token: token.native ? undefined : token.addresses[chain.chainId],
+            address,
+            chainId: chain.chainId
+        });
+        return value;
+    } catch (error) {
+        console.log(error);
+
+        return BigInt(0);
+    }
+}
+
+export async function getLPTokenBalance(
+    pool: Pool,
+    chain: Chain,
+    address: `0x${string}`
+) {
+    try {
+        const { value } = await getBalance(config, {
+            token: pool.poolAddress,
             address,
             chainId: chain.chainId
         });

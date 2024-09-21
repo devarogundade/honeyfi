@@ -16,6 +16,13 @@ export type Token = {
     native?: boolean;
 };
 
+export type Pool = {
+    chainId: number;
+    tokenAddress: `0x${string}`;
+    poolAddress: `0x${string}`;
+    isETHPool: boolean;
+};
+
 export type Router = {
     name: string;
     routerURI: string;

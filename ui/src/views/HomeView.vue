@@ -12,7 +12,7 @@ import { notify } from '@/reactives/notify';
 import { popularChains } from '@/scripts/chains';
 import { getAllowance, getTokenBalance, approveTokens } from '@/scripts/erc20';
 import { tokens } from '@/scripts/token';
-import { getBestPrice, honeyIds, swapTokens } from '@/scripts/swap';
+import { getBestPrice, honeyAddresses, swapTokens } from '@/scripts/swap';
 import type { Chain, Token, Router } from '@/scripts/types';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
@@ -188,7 +188,7 @@ const approve = async () => {
   const txHash = await approveTokens(
     swapInput.value.fromToken,
     swapInput.value.fromChain,
-    honeyIds[swapInput.value.fromChain.chainId],
+    honeyAddresses[swapInput.value.fromChain.chainId],
     Converter.toWei(swapInput.value.amountIn)
   );
 
@@ -247,7 +247,6 @@ const updateAmountOut = async () => {
   swapInput.value.router = bestPrice.router;
 };
 
-
 const updateBalances = async () => {
   if (addressStore.address) {
     const balanceIn = await getTokenBalance(
@@ -273,7 +272,7 @@ const updateApprovals = async () => {
       swapInput.value.fromToken,
       swapInput.value.fromChain,
       addressStore.address,
-      honeyIds[swapInput.value.fromChain.chainId]
+      honeyAddresses[swapInput.value.fromChain.chainId]
     );
 
     swapInput.value.approveIn = Converter.fromWei(allowance);

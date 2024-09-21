@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { onMounted, ref, watch } from 'vue';
 import { popularChains } from '@/scripts/chains';
 import ChainList from '@/components/ChainList.vue';
 import TokenList from '@/components/TokenList.vue';
-import type { Chain, Token, Router } from '@/scripts/types';
+import type { Chain, Token } from '@/scripts/types';
 import ChevronDownIcon from '@/components/icons/ChevronDownIcon.vue';
 import { config, chains } from '@/scripts/config';
 import { findChainTokens } from '@/scripts/token';
@@ -11,6 +11,11 @@ import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
 import { useWeb3Modal } from '@web3modal/wagmi/vue';
 import { watchAccount } from '@wagmi/core';
+import Converter from '@/scripts/converter';
+import { approveTokens, getAllowance, getLPTokenBalance, getTokenBalance } from '@/scripts/erc20';
+import { getPool } from '@/scripts/pools';
+import { notify } from '@/reactives/notify';
+import { addLiquidity, removeLiquidity } from '@/scripts/liquidity';
 
 createWeb3Modal({
   wagmiConfig: config,
@@ -29,6 +34,322 @@ const modal = useWeb3Modal();
 const addressStore = useAddressStore();
 const tokenListModal = ref(false);
 const chainListModal = ref(false);
+
+const depositing = ref<boolean>(false);
+const withdrawing = ref<boolean>(false);
+const approving = ref<boolean>(false);
+
+const poolsInput = ref({
+  chain: popularChains[0],
+  secondaryChain: popularChains[1],
+  token: findChainTokens(popularChains[0].chainId)[0],
+  mode: Mode.DEPOSIT,
+  amount: undefined as number | undefined,
+  lpTokens: 0,
+  balance: 0,
+  approve: 0
+});
+
+// ================= Contract Functions ================= //
+
+const deposit = async () => {
+  if (depositing.value) return;
+
+  if (!addressStore.address) {
+    notify.push({
+      title: 'Connect Wallet',
+      description: 'Wallet connection is required.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const tokenAddress = poolsInput.value.token.addresses[poolsInput.value.chain.chainId];
+
+  if (!tokenAddress) {
+    notify.push({
+      title: 'Invalid token',
+      description: 'Token not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const pool = getPool(
+    poolsInput.value.chain.chainId,
+    tokenAddress
+  );
+
+  if (!pool) {
+    notify.push({
+      title: 'Invalid ppol',
+      description: 'Pool not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  if (!poolsInput.value.amount || poolsInput.value.amount == 0) {
+    notify.push({
+      title: 'Invalid amount in',
+      description: 'Enter a valid amount to deposit.',
+      category: 'error'
+    });
+    return;
+  };
+
+  depositing.value = true;
+
+  const txHash = await addLiquidity(
+    pool,
+    poolsInput.value.chain,
+    Converter.toWei(poolsInput.value.amount)
+  );
+
+  if (txHash) {
+    notify.push({
+      title: 'Deposit liquidity completed',
+      description: 'Transaction was sent succesfully.',
+      category: 'success',
+      linkTitle: 'View Trx',
+      linkUrl: `${poolsInput.value.chain.explorerUrl}/tx/${txHash}`
+    });
+
+    poolsInput.value.amount = undefined;
+
+    updateBalances();
+  } else {
+    notify.push({
+      title: 'Transaction failed',
+      description: 'Try again later.',
+      category: 'error'
+    });
+  }
+
+  depositing.value = false;
+};
+
+const withdraw = async () => {
+  if (withdrawing.value) return;
+
+  if (!addressStore.address) {
+    notify.push({
+      title: 'Connect Wallet',
+      description: 'Wallet connection is required.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const tokenAddress = poolsInput.value.token.addresses[poolsInput.value.chain.chainId];
+
+  if (!tokenAddress) {
+    notify.push({
+      title: 'Invalid token',
+      description: 'Token not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const pool = getPool(
+    poolsInput.value.chain.chainId,
+    tokenAddress
+  );
+
+  if (!pool) {
+    notify.push({
+      title: 'Invalid ppol',
+      description: 'Pool not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  if (!poolsInput.value.amount || poolsInput.value.amount == 0) {
+    notify.push({
+      title: 'Invalid amount in',
+      description: 'Enter a valid amount to deposit.',
+      category: 'error'
+    });
+    return;
+  };
+
+  withdrawing.value = true;
+
+  const txHash = await removeLiquidity(
+    pool,
+    poolsInput.value.chain,
+    poolsInput.value.secondaryChain,
+    Converter.toWei(poolsInput.value.amount)
+  );
+
+  if (txHash) {
+    notify.push({
+      title: 'Deposit liquidity completed',
+      description: 'Transaction was sent succesfully.',
+      category: 'success',
+      linkTitle: 'View Trx',
+      linkUrl: `${poolsInput.value.chain.explorerUrl}/tx/${txHash}`
+    });
+
+    poolsInput.value.amount = undefined;
+
+    updateBalances();
+  } else {
+    notify.push({
+      title: 'Transaction failed',
+      description: 'Try again later.',
+      category: 'error'
+    });
+  }
+
+  withdrawing.value = false;
+};
+
+const approve = async () => {
+  if (!addressStore.address) {
+    notify.push({
+      title: 'Connect Wallet',
+      description: 'Wallet connection is required.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const tokenAddress = poolsInput.value.token.addresses[poolsInput.value.chain.chainId];
+
+  if (!tokenAddress) {
+    notify.push({
+      title: 'Invalid token',
+      description: 'Token not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  const pool = getPool(
+    poolsInput.value.chain.chainId,
+    tokenAddress
+  );
+
+  if (!pool) {
+    notify.push({
+      title: 'Invalid ppol',
+      description: 'Pool not found.',
+      category: 'error'
+    });
+    return;
+  }
+
+  if (!poolsInput.value.amount || poolsInput.value.amount == 0) {
+    notify.push({
+      title: 'Invalid amount in',
+      description: 'Enter a valid amount to swap.',
+      category: 'error'
+    });
+    return;
+  };
+
+  if (approving.value) {
+    notify.push({
+      title: 'Please wait',
+      description: 'Approval in progress.',
+      category: 'error'
+    });
+    return;
+  }
+
+  approving.value = true;
+
+  const txHash = await approveTokens(
+    poolsInput.value.token,
+    poolsInput.value.chain,
+    pool.poolAddress,
+    Converter.toWei(poolsInput.value.amount)
+  );
+
+  if (txHash) {
+    notify.push({
+      title: 'Approval completed',
+      description: 'Transaction was sent succesfully.',
+      category: 'success',
+      linkTitle: 'View Trx',
+      linkUrl: `${poolsInput.value.chain.explorerUrl}/tx/${txHash}`
+    });
+
+    updateApprovals();
+
+    deposit();
+  } else {
+    notify.push({
+      title: 'Transaction failed',
+      description: 'Try again later.',
+      category: 'error'
+    });
+  }
+
+  approving.value = false;
+};
+
+// ================= UX Functions ================= //
+
+const updateBalances = async () => {
+  if (addressStore.address) {
+    const balance = await getTokenBalance(
+      poolsInput.value.token,
+      poolsInput.value.chain,
+      addressStore.address
+    );
+
+    poolsInput.value.balance = Converter.fromWei(balance);
+
+    const tokenAddress = poolsInput.value.token.addresses[poolsInput.value.chain.chainId];
+
+    if (!tokenAddress) return;
+
+    const pool = getPool(
+      poolsInput.value.chain.chainId,
+      tokenAddress
+    );
+
+    if (!pool) return;
+
+    const lpTokens = await getLPTokenBalance(
+      pool,
+      poolsInput.value.chain,
+      addressStore.address
+    );
+
+    poolsInput.value.lpTokens = Converter.fromWei(lpTokens);
+  }
+};
+
+const updateApprovals = async () => {
+  const tokenAddress = poolsInput.value.token.addresses[poolsInput.value.chain.chainId];
+
+  if (!tokenAddress) return;
+
+  const pool = getPool(
+    poolsInput.value.chain.chainId,
+    tokenAddress
+  );
+
+  if (!pool) return;
+
+  if (addressStore.address) {
+    const allowance = await getAllowance(
+      poolsInput.value.token,
+      poolsInput.value.chain,
+      addressStore.address,
+      pool.poolAddress
+    );
+
+    poolsInput.value.approve = Converter.fromWei(allowance);
+  }
+};
+
+// ================= Modal Functions ================= //
 
 const openChainListModal = () => {
   chainListModal.value = true;
@@ -51,12 +372,6 @@ const chainChanged = (chain: Chain) => {
   chainListModal.value = false;
 };
 
-const poolsInput = ref({
-  chain: popularChains[0],
-  token: findChainTokens(popularChains[0].chainId)[0],
-  mode: Mode.DEPOSIT
-});
-
 onMounted(() => {
   watchAccount(config, {
     onChange(account: any) {
@@ -64,6 +379,17 @@ onMounted(() => {
     },
   });
 });
+
+watch(
+  poolsInput,
+  () => {
+    updateBalances();
+    updateApprovals();
+  },
+  {
+    deep: true
+  }
+);
 </script>
 
 <template>
@@ -104,10 +430,10 @@ onMounted(() => {
           <div class="liquidity_widget">
             <div class="tabs">
               <button :class="poolsInput.mode == Mode.DEPOSIT ? 'tab tab_active' : 'tab'"
-                @click="poolsInput.mode = Mode.DEPOSIT">Add</button>
+                @click="poolsInput.mode = Mode.DEPOSIT">Deposit</button>
 
               <button :class="poolsInput.mode == Mode.WITHDRAW ? 'tab tab_active' : 'tab'"
-                @click="poolsInput.mode = Mode.WITHDRAW">Remove</button>
+                @click="poolsInput.mode = Mode.WITHDRAW">Withdraw</button>
             </div>
 
             <div class="liquidity_box">
@@ -133,12 +459,23 @@ onMounted(() => {
                 </div>
 
                 <div class="liquidity_price">
-                  <p>$1.03</p>
+                  <p v-if="poolsInput.mode == Mode.DEPOSIT">Bal: {{ Converter.toMoney(poolsInput.balance) }}</p>
+                  <p v-else>LP Bal: {{ Converter.toMoney(poolsInput.lpTokens) }}</p>
                 </div>
               </div>
 
               <div class="liquidity_action">
-                <button @click="modal.open()">Connect Wallet</button>
+                <button v-if="!addressStore.address" @click="modal.open()">Connect Wallet</button>
+
+                <button v-else-if="addressStore.address && poolsInput.approve < (poolsInput.amount || 0)"
+                  @click="approve">{{
+                    approving ? 'Approving..' : 'Approve ' }}</button>
+
+                <button v-else-if="addressStore.address && poolsInput.mode == Mode.DEPOSIT" @click="deposit">{{
+                  depositing ?
+                    'Depositing..' : 'Deposit' }}</button>
+
+                <button v-else @click="withdraw">{{ withdrawing ? 'Removing..' : 'Withdraw' }}</button>
               </div>
             </div>
           </div>

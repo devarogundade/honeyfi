@@ -6,7 +6,7 @@ const Converter = {
         return hash.substring(0, space) + '...' + hash.substring(hash.length - space, hash.length);
     },
 
-    fromWei: function (wei: | bigint): number {
+    fromWei: function (wei: bigint): number {
         try {
             if (wei == BigInt(0)) return 0;
             return convert(wei, 'wei', 'ether');
