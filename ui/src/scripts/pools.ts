@@ -4,23 +4,23 @@ export const pools: Pool[] = [
     // ============= BSC ============= //
     {
         chainId: 97,
-        tokenAddress: '0x3b67b9F3640e1c6103A4CD8c9Db415987444Ac00',
-        poolAddress: '0xCAaea60b9667a971c0E78eE8121c093906cAFF04',
+        tokenAddress: '0x59a69f13E48e9B79650455c539bf5BB972d1eBF7',
+        poolAddress: '0x377c926a4c49d3df86aE901258Ae2B974e6D1bD0',
     },
     {
         chainId: 97,
         tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        poolAddress: '0xa242743085dBd8820EcEde64c39942d3e8a6fe34',
+        poolAddress: '0x52f4cBCb8Ec149D00108a28bb51108C212D1CFD4',
     },
     {
         chainId: 97,
-        tokenAddress: '0x8668a4845BAC981a78734Aa3164eFD88Ce614a97',
-        poolAddress: '0xADbc0aD48724DDe7df56Ee30be0e855Ad597498A',
+        tokenAddress: '0xE485cdD587BFfc8995B1E0A353c1BD49Fcc36003',
+        poolAddress: '0x14812AECFaAcBfA5641818C5d675D217107C0b54',
     },
     {
         chainId: 97,
-        tokenAddress: '0x58D772598C95cbf22C0219906d8F7C00630bd8C7',
-        poolAddress: '0x6D56a1CEB9784328d0C8550acE2AE0fC1f82E66d'
+        tokenAddress: '0xaC19C35bB435AAABaa8478Ee6b70dceeC1BE164d',
+        poolAddress: '0xB51De1De6645Ad70E68948be187a99dad878f71a'
     },
 
     // ============= ARBITRUM ============= //

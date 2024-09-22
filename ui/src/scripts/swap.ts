@@ -11,12 +11,12 @@ export interface BestPrice {
 }
 
 export const honeyFactories: { [key: number]: `0x${string}`; } = {
-    97: '0x0f20144b1F33A39a28f8e8d8f3eF4d200391dB8f',
+    97: '0x87619381D1176d15811efb4ef8Fd84D1243d6DD4',
     421614: '0x8207EaE49615c6725646f998ba55Fcdcf859d447'
 };
 
 export const honeyRouters: { [key: number]: `0x${string}`; } = {
-    97: '0x4d03cEb285a997777be3612Ab03D818119fA8685',
+    97: '0x35aC37059E0756D0460290254a197982905ED909',
     421614: '0xdD7276F4e1983006033d583426e0D7947A7c14c8'
 };
 

@@ -4,3 +4,8 @@ export const EquitoRouters = {
 };
 
 export const WETH = '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE';
+
+export type Bytes64 = {
+    lower: `0x${string}`;
+    upper: `0x${string}`;
+};

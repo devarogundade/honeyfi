@@ -8,7 +8,7 @@ export const tokens: Token[] = [
         symbol: "ETH",
         image: "/images/eth.png",
         addresses: {
-            97: "0x3b67b9F3640e1c6103A4CD8c9Db415987444Ac00",
+            97: "0x59a69f13E48e9B79650455c539bf5BB972d1eBF7",
             421614: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
         }
     },
@@ -26,7 +26,7 @@ export const tokens: Token[] = [
         symbol: "hBTC",
         image: "/images/btc.png",
         addresses: {
-            97: "0x8668a4845BAC981a78734Aa3164eFD88Ce614a97",
+            97: "0xE485cdD587BFfc8995B1E0A353c1BD49Fcc36003",
             421614: "0x7925430C6968122d0968F28cfd3118318fD97319"
         }
     },
@@ -35,7 +35,7 @@ export const tokens: Token[] = [
         symbol: "hUSDT",
         image: "/images/usdt.png",
         addresses: {
-            97: "0x58D772598C95cbf22C0219906d8F7C00630bd8C7",
+            97: "0xaC19C35bB435AAABaa8478Ee6b70dceeC1BE164d",
             421614: "0xFD132250838394168dFC2Da524C5Ee612715c431"
         }
     }

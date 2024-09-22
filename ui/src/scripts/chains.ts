@@ -6,16 +6,16 @@ export const chains: Chain[] = [
         image: "/images/bsc.png",
         shortName: "BSC",
         chainId: 97,
-        explorerUrl: '',
+        explorerUrl: 'https://testnet.bscscan.com',
         equitoSelector: 1002,
-        faucetLink: ''
+        faucetLink: 'https://testnet.bnbchain.org/faucet-smart'
     },
     {
         name: "Arbitrum Sepolia",
         image: "/images/arb.png",
         shortName: "Arb",
         chainId: 421614,
-        explorerUrl: '',
+        explorerUrl: 'https://sepolia.arbiscan.io',
         equitoSelector: 1004,
         faucetLink: ''
     }

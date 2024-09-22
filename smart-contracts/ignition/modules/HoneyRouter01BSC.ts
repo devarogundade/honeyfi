@@ -1,7 +1,7 @@
 import { ethers } from 'ethers';
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 import TokenMapModule from "./TokenMap";
-import { EquitoRouters, WETH as BNB } from "./EquitoRouters";
+import { EquitoRouters, WETH as BNB, Bytes64 } from "./EquitoRouters";
 import HoneyFactoryModuleBSC from "./HoneyFactoryBSC";
 import HUSDTModule from "./HUSDT";
 import HBTCModule from "./HBTC";
@@ -68,6 +68,30 @@ const HoneyRouter01ModuleBSC = buildModule("HoneyRouter01ModuleBSC", (m) => {
     m.call(basicRouter, "setTokenPrice", [hbtc, 62784], { id: "btc" });
 
     m.call(basicRouter, "setTokenPrice", [husdt, 1], { id: "usdt" });
+
+    // Set Peers
+    const ARBITRUM_SELECTOR = 1004;
+    const ARBITRUM_FACTORY: Bytes64 = {
+        lower: "0x0000000000000000000000008207eae49615c6725646f998ba55fcdcf859d447",
+        upper: "0x0000000000000000000000000000000000000000000000000000000000000000"
+    };
+    const ARBITRUM_ROUTER: Bytes64 = {
+        lower: "0x000000000000000000000000dd7276f4e1983006033d583426e0d7947a7c14c8",
+        upper: "0x0000000000000000000000000000000000000000000000000000000000000000"
+    };
+
+    m.call(honeyFactory, "setPeers", [[ARBITRUM_SELECTOR], [ARBITRUM_FACTORY]]);
+
+    m.call(honeyRouter01, "setPeers", [[ARBITRUM_SELECTOR], [ARBITRUM_ROUTER]]);
+
+    // Set Token Map
+    m.call(tokenMap, "set", [BNB, ARBITRUM_SELECTOR, "0x14E0826c58f9C2a3a1B46b51F6d4705bCf0d6a22"], { id: "set_bnb" });
+
+    m.call(tokenMap, "set", [weth, ARBITRUM_SELECTOR, "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE"], { id: "set_weth" });
+
+    m.call(tokenMap, "set", [hbtc, ARBITRUM_SELECTOR, "0x7925430C6968122d0968F28cfd3118318fD97319"], { id: "set_hbtc" });
+
+    m.call(tokenMap, "set", [husdt, ARBITRUM_SELECTOR, "0xFD132250838394168dFC2Da524C5Ee612715c431"], { id: "set_husdt" });
 
     return { honeyRouter01 };
 });
