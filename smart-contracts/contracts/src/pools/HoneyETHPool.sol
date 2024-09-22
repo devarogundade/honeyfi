@@ -95,7 +95,8 @@ contract HoneyETHPool is IHoneyETHPool, ERC20, AccessControl {
             );
         } else {
             // Transfer the underlying tokens back to the user
-            payable(sender).transfer(amount);
+            // Include unspent ETH
+            payable(sender).transfer(amount + msg.value);
         }
 
         // Update total reserves

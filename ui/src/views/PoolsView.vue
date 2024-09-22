@@ -395,7 +395,9 @@ const chainChanged = async (chain: Chain) => {
   poolsInput.value.chain = chain;
   poolsInput.value.token = findChainTokens(chain.chainId)[0];
 
-  await switchChain(config, { chainId: chain.chainId });
+  if (addressStore.address) {
+    await switchChain(config, { chainId: chain.chainId });
+  }
 
   chainListModal.value = false;
 };

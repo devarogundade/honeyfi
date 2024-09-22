@@ -225,7 +225,9 @@ const flip = async () => {
   swapInput.value.toChain = tempFromChain;
   swapInput.value.toToken = tempFromToken;
 
-  await switchChain(config, { chainId: swapInput.value.fromChain.chainId });
+  if (addressStore.address) {
+    await switchChain(config, { chainId: swapInput.value.fromChain.chainId });
+  }
 };
 
 // ================= UX Functions ================= //
@@ -320,7 +322,9 @@ const chainChanged = async (chain: Chain) => {
   if (replaceIndex.value == 0) {
     swapInput.value.fromChain = chain;
 
-    await switchChain(config, { chainId: chain.chainId });
+    if (addressStore.address) {
+      await switchChain(config, { chainId: chain.chainId });
+    }
   } else {
     swapInput.value.toChain = chain;
   }

@@ -100,6 +100,8 @@ contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
         } else {
             // Transfer the underlying tokens back to the user
             ERC20(token).safeTransfer(sender, amount);
+            // Include unspent ETH
+            payable(sender).transfer(msg.value);
         }
 
         // Update total reserves
