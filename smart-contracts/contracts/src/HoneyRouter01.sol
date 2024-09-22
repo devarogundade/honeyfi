@@ -14,7 +14,8 @@ import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {EquitoApp} from "../lib/EquitoApp.sol";
 import {IHoneyExecutor} from "./interfaces/IHoneyExecutor.sol";
-
+import {IHoneyPool} from "./interfaces/IHoneyPool.sol";
+import {IHoneyETHPool} from "./interfaces/IHoneyETHPool.sol";
 contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     using SafeERC20 for IERC20;
 
@@ -68,6 +69,12 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             // transfer Tokens to sender
             IERC20(tokenOut).safeTransfer(sender, amountOut);
         } else {
+            address pool = factory.getPool(tokenOut);
+
+            // deposit amountOut to pool
+            IERC20(tokenOut).approve(pool, amountOut);
+            IHoneyPool(pool).deposit(amountOut);
+
             // cross chain call to release Tokens on the destination chain.
             _crossChainCall(
                 sender,
@@ -101,6 +108,11 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             // transfer Tokens to sender
             payable(sender).transfer(amountOut);
         } else {
+            address pool = factory.getPool(WETH);
+
+            // deposit amountOut to pool
+            IHoneyETHPool(pool).deposit{value: amountOut}();
+
             // cross chain call to release Tokens on the destination chain.
             _crossChainCall(sender, destinationChainSelector, WETH, amountOut);
         }
@@ -131,6 +143,12 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             // transfer Tokens to sender
             IERC20(tokenOut).safeTransfer(sender, amountOut);
         } else {
+            address pool = factory.getPool(tokenOut);
+
+            // deposit amountOut to pool
+            IERC20(tokenOut).approve(pool, amountOut);
+            IHoneyPool(pool).deposit(amountOut);
+
             // cross chain call to release Tokens on the destination chain.
             _crossChainCall(
                 sender,
