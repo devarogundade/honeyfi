@@ -7,8 +7,4 @@ contract HBTC is ERC20 {
     constructor() ERC20("Honey Bitcoin", "HBTC") {
         _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
-
-    function freeMint() external {
-        _mint(msg.sender, 1 * 10 ** decimals());
-    }
 }

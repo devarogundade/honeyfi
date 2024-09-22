@@ -7,8 +7,4 @@ contract WETH is ERC20 {
     constructor() ERC20("Wrapped Ethereum", "WETH") {
         _mint(msg.sender, 1_000_000_000 * 10 ** decimals());
     }
-
-    function freeMint() external {
-        _mint(msg.sender, 10 * 10 ** decimals());
-    }
 }
