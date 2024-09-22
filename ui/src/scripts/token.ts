@@ -18,7 +18,7 @@ export const tokens: Token[] = [
         image: "/images/bsc.png",
         addresses: {
             97: "0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE",
-            421614: "0xaAAb8EE63b5aad589d834261b1dbfac59d681c5D"
+            421614: "0x14E0826c58f9C2a3a1B46b51F6d4705bCf0d6a22"
         }
     },
     {
@@ -27,7 +27,7 @@ export const tokens: Token[] = [
         image: "/images/btc.png",
         addresses: {
             97: "0x8668a4845BAC981a78734Aa3164eFD88Ce614a97",
-            421614: "0x3d269Ea3641fB768Ce7069BB9b73fccc880b9Da6"
+            421614: "0x7925430C6968122d0968F28cfd3118318fD97319"
         }
     },
     {
@@ -36,7 +36,7 @@ export const tokens: Token[] = [
         image: "/images/usdt.png",
         addresses: {
             97: "0x58D772598C95cbf22C0219906d8F7C00630bd8C7",
-            421614: "0xd331af3CB5894A90C328eF4F527a032b53a5D8bE"
+            421614: "0xFD132250838394168dFC2Da524C5Ee612715c431"
         }
     }
 ];

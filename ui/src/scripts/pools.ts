@@ -27,22 +27,22 @@ export const pools: Pool[] = [
     {
         chainId: 421614,
         tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        poolAddress: '0x9C79Dc9047250d6043b4e32C0B3C882217445930',
+        poolAddress: '0xf18C2d7DD6373e001aE3a2e041cc74077fAEce05',
     },
     {
         chainId: 421614,
-        tokenAddress: '0xaAAb8EE63b5aad589d834261b1dbfac59d681c5D',
-        poolAddress: '0xA1264F93EB785330502CA5B6c6be492a04Faf6Ba',
+        tokenAddress: '0x14E0826c58f9C2a3a1B46b51F6d4705bCf0d6a22',
+        poolAddress: '0x5517DCf6Dc767258BB75e28d220b1D8DF80Df99d',
     },
     {
         chainId: 421614,
-        tokenAddress: '0x3d269Ea3641fB768Ce7069BB9b73fccc880b9Da6',
-        poolAddress: '0x4EbBd8061c03bf146f7333F228676a94861f906b',
+        tokenAddress: '0x7925430C6968122d0968F28cfd3118318fD97319',
+        poolAddress: '0x26F65583fD7B68a5467F5E96Ca4A3e93B5942E49',
     },
     {
         chainId: 421614,
-        tokenAddress: '0xd331af3CB5894A90C328eF4F527a032b53a5D8bE',
-        poolAddress: '0x95b319801de790C4eeb19FC8721ff1db30fA80eF'
+        tokenAddress: '0xFD132250838394168dFC2Da524C5Ee612715c431',
+        poolAddress: '0x105BE8DD7D4747EA186E647e813AFc495661Dc6c'
     }
 ];
 

@@ -13,12 +13,12 @@ export interface BestPrice {
 
 export const honeyFactories: { [key: number]: `0x${string}`; } = {
     97: '0x0f20144b1F33A39a28f8e8d8f3eF4d200391dB8f',
-    421614: '0x'
+    421614: '0x8207EaE49615c6725646f998ba55Fcdcf859d447'
 };
 
 export const honeyRouters: { [key: number]: `0x${string}`; } = {
     97: '0x4d03cEb285a997777be3612Ab03D818119fA8685',
-    421614: '0x5Ad213b02Ee414C2EaBe004A61774207faC5113c'
+    421614: '0xdD7276F4e1983006033d583426e0D7947A7c14c8'
 };
 
 export async function swapTokens(
