@@ -3,9 +3,6 @@
         <div class="app_width">
             <footer>
                 <nav class="pages">
-                    <RouterLink to="/faucet">
-                        <button>Faucet</button>
-                    </RouterLink>
                     <a href="https://x.com/honeyfi_" target="_blank">
                         <button>X (Twitter)</button>
                     </a>
