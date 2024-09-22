@@ -384,6 +384,15 @@ watch(
     updateAmountOut();
   }
 );
+
+watch(
+  computed(() => addressStore.address),
+  () => {
+    updateBalances();
+    updateApprovals();
+    updateAmountOut();
+  }
+);
 </script>
 
 <template>

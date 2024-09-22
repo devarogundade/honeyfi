@@ -2,7 +2,6 @@ import type { Token, Chain, Router, Pool } from "./types";
 import { readContract, waitForTransactionReceipt, writeContract } from "@wagmi/core";
 import { config } from "./config";
 import { honeyRouterAbi } from "@/abis/honey-router";
-import { poolTokenAbi } from "@/abis/honey-pools";
 import { WETH } from "./token";
 
 export interface BestPrice {

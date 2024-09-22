@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { popularChains } from '@/scripts/chains';
 import ChainList from '@/components/ChainList.vue';
 import TokenList from '@/components/TokenList.vue';
@@ -418,6 +418,14 @@ watch(
   },
   {
     deep: true
+  }
+);
+
+watch(
+  computed(() => addressStore.address),
+  () => {
+    updateBalances();
+    updateApprovals();
   }
 );
 </script>
