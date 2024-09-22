@@ -128,4 +128,8 @@ contract HoneyFactory is EquitoApp, IHoneyFactory, AccessControl {
 
         return _pools[token];
     }
+
+    function toBase64(address value) public pure returns (bytes64 memory) {
+        return EquitoMessageLibrary.addressToBytes64(value);
+    }
 }

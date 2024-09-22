@@ -4,65 +4,85 @@ pragma solidity <=0.8.24;
 import "./HoneyErrors.sol";
 import {IHoneyExecutor} from "./interfaces/IHoneyExecutor.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
-import {IUniswapV2Router01} from "@uniswap/v2-periphery/contracts/interfaces/IUniswapV2Router01.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {IBasicRouter} from "../routers/interfaces/IBasicRouter.sol";
 
 contract HoneyExecutor is IHoneyExecutor, AccessControl {
     using SafeERC20 for IERC20;
 
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    address private constant WETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
     // Mapping of DEX routers by address
     mapping(address => Router) public routers;
     address[] public routerIds; // Keeps track of registered routers
 
     constructor() {
-        _grantRole(ADMIN_ROLE, _msgSender());
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
     // =================== MUTABLE FUNCTIONS =================== //
 
     function swapETHToTokens(
-        uint256 amountIn, // Amount of tokenIn to swap
         address tokenOut, // Address of the token being swapped to
         uint256 amountOutMin, // Minimum amount of tokenOut the user expects to receive
-        uint256 deadline // Time by which the swap must be completed (for time-based expiration)
+        address to
     ) external payable returns (uint256) {
-        // Receiver of the swapped tokens is the caller of this function
-        address receiver = _msgSender();
+        uint256 amountIn = msg.value;
 
         // Find the best router for the swap and get the best output amount for the given input
-        (uint256 bestAmountOut, address routerId, ) = _bestSwapETHToTokens(
+        (uint256 bestAmountOut, address routerId, ) = _bestRouter(
             amountIn,
+            WETH,
             tokenOut
         );
-
-        address tokenIn = IUniswapV2Router01(routerId).WETH();
 
         // Revert the transaction if the best output amount is less than the minimum specified by the user
         if (bestAmountOut < amountOutMin) {
             revert InsufficientOutputAmount(bestAmountOut, amountOutMin);
         }
 
-        // Create a path for the swap (tokenIn -> tokenOut)
-        address[] memory path = new address[](2);
-        path[0] = tokenIn; // Start with tokenIn
-        path[1] = tokenOut; // End with tokenOut
+        // Execute the token swap on the selected router
+        // swapExactTokensForTokens performs the actual swap and returns an array of output amounts
+        uint256 amountOut = IBasicRouter(routerId).swapETHToTokens{
+            value: amountIn
+        }(tokenOut, to);
+
+        // Return the actual output amount
+        return amountOut;
+    }
+
+    function swapTokensToETH(
+        address tokenIn,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to
+    ) external payable override returns (uint256) {
+        // Find the best router for the swap and get the best output amount for the given input
+        (uint256 bestAmountOut, address routerId, ) = _bestRouter(
+            amountIn,
+            tokenIn,
+            WETH
+        );
+
+        // Revert the transaction if the best output amount is less than the minimum specified by the user
+        if (bestAmountOut < amountOutMin) {
+            revert InsufficientOutputAmount(bestAmountOut, amountOutMin);
+        }
+
+        // Approve router contract to spend tokens
+        IERC20(tokenIn).approve(routerId, amountIn);
 
         // Execute the token swap on the selected router
         // swapExactTokensForTokens performs the actual swap and returns an array of output amounts
-        uint256[] memory amountsOut = IUniswapV2Router01(routerId)
-            .swapExactETHForTokens{value: amountIn}(
-            amountOutMin, // The minimum output token amount
-            path, // The swap path
-            receiver, // Address that will receive the swapped tokens
-            deadline // The deadline by which the swap must be completed
+        uint256 amountOut = IBasicRouter(routerId).swapTokensToETH(
+            tokenIn,
+            amountIn,
+            to
         );
 
-        // Return the actual output amount (the last value in the amountsOut array)
-        return amountsOut[amountsOut.length - 1];
+        // Return the actual output amount
+        return amountOut;
     }
 
     function swapTokensToTokens(
@@ -70,13 +90,10 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         uint256 amountIn, // Amount of tokenIn to swap
         address tokenOut, // Address of the token being swapped to
         uint256 amountOutMin, // Minimum amount of tokenOut the user expects to receive
-        uint256 deadline // Time by which the swap must be completed (for time-based expiration)
+        address to
     ) external payable override returns (uint256) {
-        // Receiver of the swapped tokens is the caller of this function
-        address receiver = _msgSender();
-
         // Find the best router for the swap and get the best output amount for the given input
-        (uint256 bestAmountOut, address routerId, ) = _bestSwapTokensToTokens(
+        (uint256 bestAmountOut, address routerId, ) = _bestRouter(
             amountIn,
             tokenIn,
             tokenOut
@@ -87,46 +104,33 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
             revert InsufficientOutputAmount(bestAmountOut, amountOutMin);
         }
 
+        // Approve router contract to spend tokens
         IERC20(tokenIn).approve(routerId, amountIn);
-
-        // Create a path for the swap (tokenIn -> tokenOut)
-        address[] memory path = new address[](2);
-        path[0] = tokenIn; // Start with tokenIn
-        path[1] = tokenOut; // End with tokenOut
 
         // Execute the token swap on the selected router
         // swapExactTokensForTokens performs the actual swap and returns an array of output amounts
-        uint256[] memory amountsOut = IUniswapV2Router01(routerId)
-            .swapExactTokensForTokens(
-                amountIn, // The input token amount
-                amountOutMin, // The minimum output token amount
-                path, // The swap path
-                receiver, // Address that will receive the swapped tokens
-                deadline // The deadline by which the swap must be completed
-            );
+        uint256 amountOut = IBasicRouter(routerId).swapTokenToToken(
+            tokenIn,
+            tokenOut,
+            amountIn,
+            to
+        );
 
-        // Return the actual output amount (the last value in the amountsOut array)
-        return amountsOut[amountsOut.length - 1];
+        // Return the actual output amount
+        return amountOut;
     }
 
-    function bestSwapTokensToTokens(
+    function bestRouter(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
     ) external view override returns (uint256, address, Router memory) {
-        return _bestSwapTokensToTokens(amountIn, tokenIn, tokenOut);
-    }
-
-    function bestSwapETHToTokens(
-        uint256 amountIn,
-        address tokenOut
-    ) external view override returns (uint256, address, Router memory) {
-        return _bestSwapETHToTokens(amountIn, tokenOut);
+        return _bestRouter(amountIn, tokenIn, tokenOut);
     }
 
     // =================== INTERNAL FUNCTIONS =================== //
 
-    function _bestSwapTokensToTokens(
+    function _bestRouter(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
@@ -137,58 +141,17 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
 
         // Loop through all router addresses stored in routerIds
         for (uint256 i = 0; i < routerIds.length; i++) {
-            // Create a path array for the swap on the current router
-            address[] memory path = new address[](2);
-            path[0] = tokenIn; // Set tokenIn as the first element
-            path[1] = tokenOut; // Set tokenOut as the second element
-
             // Get the output amount (price) for the given amountIn using the current router
-            // IUniswapV2Router01 is an interface for the router, calling getAmountsOut to simulate the swap
-            uint256[] memory amountsOut = IUniswapV2Router01(routerIds[i])
-                .getAmountsOut(amountIn, path);
-
-            // The price is the last element in the amountsOut array (the amount of tokenOut you receive)
-            uint256 price = amountsOut[amountsOut.length - 1];
+            // IBasicRouter is an interface for the router, calling getAmountOut to simulate the swap
+            uint256 amountOut = IBasicRouter(routerIds[i]).getAmountOut(
+                tokenIn,
+                tokenOut,
+                amountIn
+            );
 
             // Compare the price to the current bestPrice and update if this one is better
-            if (price > bestPrice) {
-                bestPrice = price; // Update the best price
-                bestRouterId = routerIds[i]; // Update the router that gives the best price
-            }
-        }
-
-        // Return the best price and the corresponding router's address
-        return (bestPrice, bestRouterId, routers[bestRouterId]);
-    }
-
-    function _bestSwapETHToTokens(
-        uint256 amountIn,
-        address tokenOut
-    ) internal view returns (uint256, address routerId, Router memory) {
-        // Initialize variables to store the best price and the corresponding router's address.
-        uint256 bestPrice;
-        address bestRouterId;
-
-        // Loop through all router addresses stored in routerIds
-        for (uint256 i = 0; i < routerIds.length; i++) {
-            address tokenIn = IUniswapV2Router01(routerIds[i]).WETH();
-
-            // Create a path array for the swap on the current router
-            address[] memory path = new address[](2);
-            path[0] = tokenIn; // Set tokenIn as the first element
-            path[1] = tokenOut; // Set tokenOut as the second element
-
-            // Get the output amount (price) for the given amountIn using the current router
-            // IUniswapV2Router01 is an interface for the router, calling getAmountsOut to simulate the swap
-            uint256[] memory amountsOut = IUniswapV2Router01(routerIds[i])
-                .getAmountsOut(amountIn, path);
-
-            // The price is the last element in the amountsOut array (the amount of tokenOut you receive)
-            uint256 price = amountsOut[amountsOut.length - 1];
-
-            // Compare the price to the current bestPrice and update if this one is better
-            if (price > bestPrice) {
-                bestPrice = price; // Update the best price
+            if (amountOut > bestPrice) {
+                bestPrice = amountOut; // Update the best price
                 bestRouterId = routerIds[i]; // Update the router that gives the best price
             }
         }
@@ -204,7 +167,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
         string calldata name,
         string calldata routerURI,
         address routerId
-    ) external override onlyRole(ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         routers[routerId] = Router(name, routerURI);
         routerIds.push(routerId);
     }
@@ -212,7 +175,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
     // Function to remove a router
     function removeRouter(
         address routerId
-    ) external override onlyRole(ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         delete routers[routerId];
 
         // Find and remove the routerId from the array
@@ -236,4 +199,7 @@ contract HoneyExecutor is IHoneyExecutor, AccessControl {
     function getRouter(address routerId) external view returns (Router memory) {
         return routers[routerId];
     }
+
+    // Fallback function to receive ETH
+    receive() external payable {}
 }

@@ -19,7 +19,7 @@ module.exports = {
   },
   networks: {
     bsc: {
-      url: 'https://bsc-testnet.blockpi.network/v1/rpc/public',
+      url: 'https://bsc-testnet.public.blastapi.io',
       chainId: 97,
       accounts: {
         mnemonic: MNEMONIC

@@ -4,23 +4,23 @@ export const pools: Pool[] = [
     // ============= BSC ============= //
     {
         chainId: 97,
+        tokenAddress: '0x3b67b9F3640e1c6103A4CD8c9Db415987444Ac00',
+        poolAddress: '0xCAaea60b9667a971c0E78eE8121c093906cAFF04',
+    },
+    {
+        chainId: 97,
         tokenAddress: '0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE',
-        poolAddress: '0x',
+        poolAddress: '0xa242743085dBd8820EcEde64c39942d3e8a6fe34',
     },
     {
         chainId: 97,
-        tokenAddress: '0x',
-        poolAddress: '0x',
+        tokenAddress: '0x8668a4845BAC981a78734Aa3164eFD88Ce614a97',
+        poolAddress: '0xADbc0aD48724DDe7df56Ee30be0e855Ad597498A',
     },
     {
         chainId: 97,
-        tokenAddress: '0x',
-        poolAddress: '0x',
-    },
-    {
-        chainId: 97,
-        tokenAddress: '0x',
-        poolAddress: '0x'
+        tokenAddress: '0x58D772598C95cbf22C0219906d8F7C00630bd8C7',
+        poolAddress: '0x6D56a1CEB9784328d0C8550acE2AE0fC1f82E66d'
     },
 
     // ============= ARBITRUM ============= //

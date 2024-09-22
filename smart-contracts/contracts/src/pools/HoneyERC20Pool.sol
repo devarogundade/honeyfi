@@ -10,7 +10,6 @@ import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
     using SafeERC20 for ERC20;
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
 
     uint256 private constant MINIMAL_LIQUIDITY = 10_000 * 1e18;
 
@@ -22,12 +21,11 @@ contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
 
     IHoneyFactory private _factory;
 
-    constructor(address _token) ERC20("HoneyPool LP Token", "HPT") {
+    constructor(address _token) ERC20("HoneyPool LP Token", "HLP") {
         token = _token;
 
         _factory = IHoneyFactory(_msgSender());
 
-        _grantRole(ADMIN_ROLE, _msgSender());
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
@@ -120,7 +118,7 @@ contract HoneyERC20Pool is IHoneyPool, ERC20, AccessControl {
     function withdraw(
         uint256 amount,
         address to
-    ) external override onlyRole(ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         // Transfer the underlying tokens back to the user
         ERC20(token).safeTransfer(to, amount);
     }

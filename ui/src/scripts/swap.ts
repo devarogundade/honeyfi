@@ -11,14 +11,14 @@ export interface BestPrice {
     router: Router;
 }
 
-export const honeyAddresses: { [key: number]: `0x${string}`; } = {
-    97: '0x',
-    421614: '0x5Ad213b02Ee414C2EaBe004A61774207faC5113c'
+export const honeyFactories: { [key: number]: `0x${string}`; } = {
+    97: '0x0f20144b1F33A39a28f8e8d8f3eF4d200391dB8f',
+    421614: '0x'
 };
 
-// in seconds
-const DEFAULT_DDL = (): number => {
-    return Number((Date.now() / 1000).toFixed(0) + 180);
+export const honeyRouters: { [key: number]: `0x${string}`; } = {
+    97: '0x4d03cEb285a997777be3612Ab03D818119fA8685',
+    421614: '0x5Ad213b02Ee414C2EaBe004A61774207faC5113c'
 };
 
 export async function swapTokens(
@@ -38,8 +38,13 @@ export async function swapTokens(
             amountOutMin
         );
     } else if (toToken.addresses[fromChain.chainId] == WETH) {
-        // TO DO
-        return null;
+        return swapTokensToETH(
+            fromChain,
+            toChain,
+            fromToken,
+            amountIn,
+            amountOutMin
+        );
     } else {
         return await swapTokensToTokens(
             fromChain,
@@ -52,193 +57,7 @@ export async function swapTokens(
     }
 }
 
-export async function getBestPrice(
-    fromChain: Chain,
-    fromToken: Token,
-    toToken: Token,
-    amountIn: bigint
-): Promise<BestPrice | null> {
-    if (fromToken.addresses[fromChain.chainId] == WETH) {
-        return await bestSwapETHToTokens(
-            fromChain,
-            toToken,
-            amountIn
-        );
-    } else if (toToken.addresses[fromChain.chainId] == WETH) {
-        // TO DO
-        return null;
-    } else {
-        return await bestSwapTokensToTokens(
-            fromChain,
-            fromToken,
-            toToken,
-            amountIn
-        );
-    }
-}
-
-export async function addLiquidity(
-    pool: Pool,
-    chain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    if (pool.tokenAddress == WETH) {
-        return addLiquidityETH(pool, chain, amount);
-    }
-
-    return addLiquidityToken(pool, chain, amount);
-}
-
-export async function removeLiquidity(
-    pool: Pool,
-    chain: Chain,
-    secondaryChain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    if (pool.tokenAddress == WETH) {
-        return removeLiquidityETH(pool, chain, secondaryChain, amount);
-    }
-
-    return removeLiquidityToken(pool, chain, secondaryChain, amount);
-}
-
-async function addLiquidityToken(
-    pool: Pool,
-    chain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    try {
-        const result = await writeContract(config, {
-            abi: poolTokenAbi,
-            address: pool.poolAddress,
-            functionName: 'addLiquidity',
-            args: [
-                amount
-            ],
-            chainId: chain.chainId
-        });
-
-        const receipt = await waitForTransactionReceipt(config, { hash: result });
-
-        return receipt.transactionHash;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-async function addLiquidityETH(
-    pool: Pool,
-    chain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    try {
-        const result = await writeContract(config, {
-            abi: poolTokenAbi,
-            address: pool.poolAddress,
-            functionName: 'addLiquidity',
-            chainId: chain.chainId,
-            value: amount
-        });
-
-        const receipt = await waitForTransactionReceipt(config, { hash: result });
-
-        return receipt.transactionHash;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-
-async function removeLiquidityToken(
-    pool: Pool,
-    chain: Chain,
-    secondaryChain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    try {
-        let equitoFee = BigInt(0);
-
-        equitoFee = await getEquitoFee(chain);
-
-        const result = await writeContract(config, {
-            abi: poolTokenAbi,
-            address: pool.poolAddress,
-            functionName: 'removeLiquidity',
-            args: [
-                amount,
-                secondaryChain.equitoSelector
-            ],
-            value: equitoFee,
-            chainId: chain.chainId
-        });
-
-        const receipt = await waitForTransactionReceipt(config, { hash: result });
-
-        return receipt.transactionHash;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-
-async function removeLiquidityETH(
-    pool: Pool,
-    chain: Chain,
-    secondaryChain: Chain,
-    amount: bigint
-): Promise<`0x${string}` | null> {
-    try {
-        let equitoFee = BigInt(0);
-
-        equitoFee = await getEquitoFee(chain);
-
-        const result = await writeContract(config, {
-            abi: poolTokenAbi,
-            address: pool.poolAddress,
-            functionName: 'removeLiquidity',
-            args: [
-                amount,
-                secondaryChain.equitoSelector
-            ],
-            value: equitoFee,
-            chainId: chain.chainId
-        });
-
-        const receipt = await waitForTransactionReceipt(config, { hash: result });
-
-        return receipt.transactionHash;
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-
-async function bestSwapETHToTokens(
-    fromChain: Chain,
-    toToken: Token,
-    amountIn: bigint
-): Promise<BestPrice | null> {
-    try {
-        const result = await readContract(config, {
-            abi: honeyRouterAbi,
-            address: honeyAddresses[fromChain.chainId],
-            functionName: 'bestSwapETHToTokens',
-            args: [
-                amountIn,
-                toToken.addresses[fromChain.chainId]
-            ],
-            chainId: fromChain.chainId
-        });
-
-        // @ts-ignore
-        return { amountOut: result[0], routerId: result[1], router: result[2] };
-    } catch (error) {
-        console.log(error);
-        return null;
-    }
-}
-
-async function bestSwapTokensToTokens(
+export async function getBestRouter(
     fromChain: Chain,
     fromToken: Token,
     toToken: Token,
@@ -250,8 +69,8 @@ async function bestSwapTokensToTokens(
     try {
         const result = await readContract(config, {
             abi: honeyRouterAbi,
-            address: honeyAddresses[fromChain.chainId],
-            functionName: 'bestSwapTokensToTokens',
+            address: honeyRouters[fromChain.chainId],
+            functionName: 'bestRouter',
             args: [
                 amountIn,
                 fromToken.addresses[fromChain.chainId],
@@ -280,15 +99,46 @@ async function swapETHToTokens(
     try {
         const result = await writeContract(config, {
             abi: honeyRouterAbi,
-            address: honeyAddresses[fromChain.chainId],
+            address: honeyRouters[fromChain.chainId],
             functionName: 'swapETHToTokens',
             args: [
-                toToken.addresses[toChain.chainId],
+                toToken.addresses[fromChain.chainId],
                 amountOutMin,
-                DEFAULT_DDL(),
                 toChain.equitoSelector
             ],
             value: amountIn,
+            chainId: fromChain.chainId
+        });
+
+        const receipt = await waitForTransactionReceipt(config, { hash: result });
+
+        return receipt.transactionHash;
+    } catch (error) {
+        console.log(error);
+        return null;
+    }
+}
+
+async function swapTokensToETH(
+    fromChain: Chain,
+    toChain: Chain,
+    fromToken: Token,
+    amountIn: bigint,
+    amountOutMin: bigint
+): Promise<`0x${string}` | null> {
+    if (!fromToken.addresses[toChain.chainId]) return null;
+
+    try {
+        const result = await writeContract(config, {
+            abi: honeyRouterAbi,
+            address: honeyRouters[fromChain.chainId],
+            functionName: 'swapTokensToETH',
+            args: [
+                fromToken.addresses[fromChain.chainId],
+                amountIn,
+                amountOutMin,
+                toChain.equitoSelector
+            ],
             chainId: fromChain.chainId
         });
 
@@ -322,14 +172,13 @@ async function swapTokensToTokens(
 
         const result = await writeContract(config, {
             abi: honeyRouterAbi,
-            address: honeyAddresses[fromChain.chainId],
+            address: honeyRouters[fromChain.chainId],
             functionName: 'swapTokensToTokens',
             args: [
                 fromToken.addresses[fromChain.chainId],
                 amountIn,
-                toToken.addresses[toChain.chainId],
+                toToken.addresses[fromChain.chainId],
                 amountOutMin,
-                DEFAULT_DDL(),
                 toChain.equitoSelector
             ],
             value: equitoFee,
@@ -352,7 +201,7 @@ export async function getEquitoFee(
         // @ts-ignore
         return await readContract(config, {
             abi: honeyRouterAbi,
-            address: honeyAddresses[chain.chainId],
+            address: honeyRouters[chain.chainId],
             functionName: 'getEquitoFee',
             chainId: chain.chainId
         });

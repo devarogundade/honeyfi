@@ -6,13 +6,10 @@ import {ITokenMap} from "./interfaces/ITokenMap.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 
 contract TokenMap is ITokenMap, AccessControl {
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
-
     // Mapping: token address => chain ID => token address on the destination chain
     mapping(address => mapping(uint256 => address)) private tokenMappings;
 
     constructor() {
-        _grantRole(ADMIN_ROLE, _msgSender());
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
@@ -21,7 +18,7 @@ contract TokenMap is ITokenMap, AccessControl {
         address token,
         uint256 chainId,
         address mappedToken
-    ) external override onlyRole(ADMIN_ROLE) {
+    ) external override onlyRole(DEFAULT_ADMIN_ROLE) {
         if (token == address(0) || mappedToken == address(0)) {
             revert AddressIsZero();
         }

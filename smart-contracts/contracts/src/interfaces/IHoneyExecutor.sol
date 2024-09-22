@@ -9,10 +9,16 @@ interface IHoneyExecutor {
     }
 
     function swapETHToTokens(
-        uint256 amountIn,
         address tokenOut,
         uint256 amountOutMin,
-        uint256 deadline
+        address to
+    ) external payable returns (uint256);
+
+    function swapTokensToETH(
+        address tokenIn,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        address to
     ) external payable returns (uint256);
 
     function swapTokensToTokens(
@@ -20,15 +26,10 @@ interface IHoneyExecutor {
         uint256 amountIn,
         address tokenOut,
         uint256 amountOutMin,
-        uint256 deadline
+        address to
     ) external payable returns (uint256);
 
-    function bestSwapETHToTokens(
-        uint256 amountIn,
-        address tokenOut
-    ) external view returns (uint256, address routerId, Router memory);
-
-    function bestSwapTokensToTokens(
+    function bestRouter(
         uint256 amountIn,
         address tokenIn,
         address tokenOut

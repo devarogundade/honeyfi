@@ -312,19 +312,6 @@ export const honeyRouterAbi = [
     },
     {
         "inputs": [],
-        "name": "EXECUTOR",
-        "outputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
         "name": "TREASURY",
         "outputs": [
             {
@@ -368,52 +355,6 @@ export const honeyRouterAbi = [
             },
             {
                 "internalType": "address",
-                "name": "tokenOut",
-                "type": "address"
-            }
-        ],
-        "name": "bestSwapETHToTokens",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "components": [
-                    {
-                        "internalType": "string",
-                        "name": "name",
-                        "type": "string"
-                    },
-                    {
-                        "internalType": "string",
-                        "name": "routerURI",
-                        "type": "string"
-                    }
-                ],
-                "internalType": "struct IHoneyExecutor.Router",
-                "name": "",
-                "type": "tuple"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "amountIn",
-                "type": "uint256"
-            },
-            {
-                "internalType": "address",
                 "name": "tokenIn",
                 "type": "address"
             },
@@ -423,7 +364,7 @@ export const honeyRouterAbi = [
                 "type": "address"
             }
         ],
-        "name": "bestSwapTokensToTokens",
+        "name": "bestRouter",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -811,7 +752,30 @@ export const honeyRouterAbi = [
             },
             {
                 "internalType": "uint256",
-                "name": "deadline",
+                "name": "destinationChainSelector",
+                "type": "uint256"
+            }
+        ],
+        "name": "swapETHToTokens",
+        "outputs": [],
+        "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "tokenIn",
+                "type": "address"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountIn",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "amountOutMin",
                 "type": "uint256"
             },
             {
@@ -820,7 +784,7 @@ export const honeyRouterAbi = [
                 "type": "uint256"
             }
         ],
-        "name": "swapETHToTokens",
+        "name": "swapTokensToETH",
         "outputs": [],
         "stateMutability": "payable",
         "type": "function"
@@ -849,11 +813,6 @@ export const honeyRouterAbi = [
             },
             {
                 "internalType": "uint256",
-                "name": "deadline",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
                 "name": "destinationChainSelector",
                 "type": "uint256"
             }
@@ -861,6 +820,37 @@ export const honeyRouterAbi = [
         "name": "swapTokensToTokens",
         "outputs": [],
         "stateMutability": "payable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "value",
+                "type": "address"
+            }
+        ],
+        "name": "toBase64",
+        "outputs": [
+            {
+                "components": [
+                    {
+                        "internalType": "bytes32",
+                        "name": "lower",
+                        "type": "bytes32"
+                    },
+                    {
+                        "internalType": "bytes32",
+                        "name": "upper",
+                        "type": "bytes32"
+                    }
+                ],
+                "internalType": "struct bytes64",
+                "name": "",
+                "type": "tuple"
+            }
+        ],
+        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -879,6 +869,19 @@ export const honeyRouterAbi = [
     {
         "inputs": [],
         "name": "unPause",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "address",
+                "name": "newExecutor",
+                "type": "address"
+            }
+        ],
+        "name": "updateExecutor",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"

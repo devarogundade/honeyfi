@@ -186,7 +186,7 @@ const withdraw = async () => {
 
   if (txHash) {
     notify.push({
-      title: 'Deposit liquidity completed',
+      title: 'Withdraw liquidity completed',
       description: 'Transaction was sent succesfully.',
       category: 'success',
       linkTitle: 'View Trx',
@@ -446,13 +446,13 @@ watch(
               </div>
 
               <div class="position">
-                <p>My Position</p>
-                <h3>0.00 {{ token.symbol }}</h3>
+                <p>Fee</p>
+                <h3>0.1%</h3>
               </div>
 
               <div class="position">
                 <p>Liquidty</p>
-                <h3>120.48 {{ token.symbol }}</h3>
+                <h3>-- {{ token.symbol }}</h3>
               </div>
             </div>
           </div>

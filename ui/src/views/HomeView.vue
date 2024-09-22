@@ -7,12 +7,12 @@ import SortIcon from '@/components/icons/SortIcon.vue';
 import TokenList from '@/components/TokenList.vue';
 import ChainList from '@/components/ChainList.vue';
 import { config, chains } from '@/scripts/config';
-import { onMounted, ref, watch } from 'vue';
+import { onMounted, ref, watch, computed } from 'vue';
 import { notify } from '@/reactives/notify';
 import { popularChains } from '@/scripts/chains';
 import { getAllowance, getTokenBalance, approveTokens } from '@/scripts/erc20';
 import { tokens } from '@/scripts/token';
-import { getBestPrice, honeyAddresses, swapTokens } from '@/scripts/swap';
+import { getBestRouter, honeyRouters, swapTokens } from '@/scripts/swap';
 import type { Chain, Token, Router } from '@/scripts/types';
 import { useAddressStore } from '@/stores/address';
 import { createWeb3Modal } from '@web3modal/wagmi/vue';
@@ -188,7 +188,7 @@ const approve = async () => {
   const txHash = await approveTokens(
     swapInput.value.fromToken,
     swapInput.value.fromChain,
-    honeyAddresses[swapInput.value.fromChain.chainId],
+    honeyRouters[swapInput.value.fromChain.chainId],
     Converter.toWei(swapInput.value.amountIn)
   );
 
@@ -238,7 +238,7 @@ const updateAmountOut = async () => {
     return;
   };
 
-  const bestPrice = await getBestPrice(
+  const bestPrice = await getBestRouter(
     swapInput.value.fromChain,
     swapInput.value.fromToken,
     swapInput.value.toToken,
@@ -276,7 +276,7 @@ const updateApprovals = async () => {
       swapInput.value.fromToken,
       swapInput.value.fromChain,
       addressStore.address,
-      honeyAddresses[swapInput.value.fromChain.chainId]
+      honeyRouters[swapInput.value.fromChain.chainId]
     );
 
     swapInput.value.approveIn = Converter.fromWei(allowance);
@@ -341,14 +341,47 @@ onMounted(() => {
 });
 
 watch(
-  swapInput,
+  computed(() => swapInput.value.fromChain),
   () => {
-    updateAmountOut();
     updateBalances();
     updateApprovals();
-  },
-  {
-    deep: true
+    updateAmountOut();
+  }
+);
+
+watch(
+  computed(() => swapInput.value.toChain),
+  () => {
+    updateBalances();
+    updateApprovals();
+    updateAmountOut();
+  }
+);
+
+watch(
+  computed(() => swapInput.value.fromToken),
+  () => {
+    updateBalances();
+    updateApprovals();
+    updateAmountOut();
+  }
+);
+
+watch(
+  computed(() => swapInput.value.toToken),
+  () => {
+    updateBalances();
+    updateApprovals();
+    updateAmountOut();
+  }
+);
+
+watch(
+  computed(() => swapInput.value.amountIn),
+  () => {
+    updateBalances();
+    updateApprovals();
+    updateAmountOut();
   }
 );
 </script>
@@ -372,8 +405,8 @@ watch(
               <p>{{ swapInput.slippage.toFixed(2) }}% slippage</p>
 
               <div class="swap_slippage_options" v-if="slippaging">
+                <button class="swap_slippage_option" @click="swapInput.slippage = 0.5">0.5%</button>
                 <button class="swap_slippage_option" @click="swapInput.slippage = 1">1%</button>
-                <button class="swap_slippage_option" @click="swapInput.slippage = 2">2%</button>
                 <button class="swap_slippage_option" @click="swapInput.slippage = 5">5%</button>
 
                 <input type="number" v-model="swapInput.slippage">
@@ -394,7 +427,7 @@ watch(
               </div>
 
               <div class="swap_input">
-                <input type="number" placeholder="0">
+                <input type="number" v-model="swapInput.amountIn" placeholder="0">
 
                 <button class="token" @click="openTokenListModal(0, swapInput.fromChain.chainId)">
                   <img :src="swapInput.fromToken.image" :alt="swapInput.fromToken.name">
@@ -426,7 +459,7 @@ watch(
               </div>
 
               <div class="swap_input">
-                <input type="number" disabled placeholder="0">
+                <input type="number" :value="swapInput.amountOutMin" disabled placeholder="0">
 
                 <button class="token" @click="openTokenListModal(1, swapInput.toChain.chainId)">
                   <img :src="swapInput.toToken.image" :alt="swapInput.toToken.name">
@@ -457,11 +490,13 @@ watch(
               {{ Converter.toMoney(swapInput.amountOutMin) }} {{ swapInput.toToken.symbol }}
             </p>
 
-            <button class="swap_route">
-              <img src="/images/pancakeswap.png" alt="">
-              <p>Pancakeswap</p>
-              <OutIcon />
-            </button>
+            <a :href="JSON.parse(swapInput.router.routerURI).url" target="_blank">
+              <button class="swap_route">
+                <img :src="JSON.parse(swapInput.router.routerURI).image" alt="">
+                <p>{{ swapInput.router.name }}</p>
+                <OutIcon />
+              </button>
+            </a>
           </div>
         </div>
       </div>

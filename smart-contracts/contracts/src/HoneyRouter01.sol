@@ -13,19 +13,18 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Pausable} from "@openzeppelin/contracts/utils/Pausable.sol";
 import {AccessControl} from "@openzeppelin/contracts/access/AccessControl.sol";
 import {EquitoApp} from "../lib/EquitoApp.sol";
-import {HoneyExecutor} from "./HoneyExecutor.sol";
 import {IHoneyExecutor} from "./interfaces/IHoneyExecutor.sol";
 
 contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     using SafeERC20 for IERC20;
 
-    bytes32 public constant ADMIN_ROLE = keccak256("ADMIN_ROLE");
+    address private constant WETH = 0xEeeeeEeeeEeEeeEeEeEeeEEEeeeeEeeeeeeeEEeE;
 
-    address public EXECUTOR;
     address public TREASURY;
 
     ITokenMap private tokenMap;
     IHoneyFactory private factory;
+    IHoneyExecutor private executor;
 
     constructor(
         address _tokenMap,
@@ -36,9 +35,6 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
 
         tokenMap = ITokenMap(_tokenMap);
 
-        EXECUTOR = address(new HoneyExecutor());
-
-        _grantRole(ADMIN_ROLE, _msgSender());
         _grantRole(DEFAULT_ADMIN_ROLE, _msgSender());
     }
 
@@ -47,35 +43,25 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     function swapETHToTokens(
         address tokenOut,
         uint256 amountOutMin,
-        uint256 deadline,
         uint256 destinationChainSelector
-    ) external payable whenNotPaused {
+    ) external payable override whenNotPaused {
         address sender = _msgSender();
 
-        uint256 amountIn = msg.value;
+        uint256 amountIn = 0;
 
-        /// @notice Get tokenOut balance of contract.
-        uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
+        if (router.chainSelector() == destinationChainSelector) {
+            amountIn = msg.value;
+        } else {
+            // cross chain swap
+            uint256 equitoFee = router.getFee(address(this));
+            amountIn = msg.value - equitoFee;
+        }
 
-        /// @notice Calculate tokenOut amount required.
-        uint256 tokenOutAmountRequired = balanceBefore + amountOutMin;
-
-        uint256 amountOut = IHoneyExecutor(EXECUTOR).swapETHToTokens(
-            amountIn,
+        uint256 amountOut = executor.swapETHToTokens{value: amountIn}(
             tokenOut,
             amountOutMin,
-            deadline
+            address(this)
         );
-
-        uint256 balanceAfter = IERC20(tokenOut).balanceOf(address(this));
-
-        /// @notice Check if tokenOut balance of contract is sufficient.
-        if (balanceAfter < tokenOutAmountRequired) {
-            revert InsufficientOutputAmount(
-                tokenOutAmountRequired - balanceAfter,
-                amountOutMin
-            );
-        }
 
         if (router.chainSelector() == destinationChainSelector) {
             // no cross chain call
@@ -92,46 +78,53 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
         }
     }
 
-    // UPCOMING: note that it is hard to get enough native
-    // coins for testing.
-    // function swapTokensToETH() external payable whenNotPaused {}
+    function swapTokensToETH(
+        address tokenIn,
+        uint256 amountIn,
+        uint256 amountOutMin,
+        uint256 destinationChainSelector
+    ) external payable override whenNotPaused {
+        address sender = _msgSender();
+
+        // Transfer token in to executor contract.
+        IERC20(tokenIn).safeTransferFrom(sender, address(executor), amountIn);
+
+        uint256 amountOut = executor.swapTokensToETH(
+            tokenIn,
+            amountIn,
+            amountOutMin,
+            address(this)
+        );
+
+        if (router.chainSelector() == destinationChainSelector) {
+            // no cross chain call
+            // transfer Tokens to sender
+            payable(sender).transfer(amountOut);
+        } else {
+            // cross chain call to release Tokens on the destination chain.
+            _crossChainCall(sender, destinationChainSelector, WETH, amountOut);
+        }
+    }
 
     function swapTokensToTokens(
         address tokenIn,
         uint256 amountIn,
         address tokenOut,
         uint256 amountOutMin,
-        uint256 deadline,
         uint256 destinationChainSelector
     ) external payable override whenNotPaused {
         address sender = _msgSender();
 
         // Transfer token in to executor contract.
-        IERC20(tokenIn).safeTransferFrom(sender, EXECUTOR, amountIn);
+        IERC20(tokenIn).safeTransferFrom(sender, address(executor), amountIn);
 
-        /// @notice Get tokenOut balance of contract.
-        uint256 balanceBefore = IERC20(tokenOut).balanceOf(address(this));
-
-        /// @notice Calculate tokenOut amount required.
-        uint256 tokenOutAmountRequired = balanceBefore + amountOutMin;
-
-        uint256 amountOut = IHoneyExecutor(EXECUTOR).swapTokensToTokens(
+        uint256 amountOut = executor.swapTokensToTokens(
             tokenIn,
             amountIn,
             tokenOut,
             amountOutMin,
-            deadline
+            address(this)
         );
-
-        uint256 balanceAfter = IERC20(tokenOut).balanceOf(address(this));
-
-        /// @notice Check if tokenOut balance of contract is sufficient.
-        if (balanceAfter < tokenOutAmountRequired) {
-            revert InsufficientOutputAmount(
-                tokenOutAmountRequired - balanceAfter,
-                amountOutMin
-            );
-        }
 
         if (router.chainSelector() == destinationChainSelector) {
             // no cross chain call
@@ -149,28 +142,21 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     }
 
     // =================== VIEW FUNCTIONS =================== //
-    function getEquitoFee() external view returns (uint256) {
+
+    function toBase64(address value) public pure returns (bytes64 memory) {
+        return EquitoMessageLibrary.addressToBytes64(value);
+    }
+
+    function getEquitoFee() external view override returns (uint256) {
         return router.getFee(address(this));
     }
 
-    function bestSwapTokensToTokens(
+    function bestRouter(
         uint256 amountIn,
         address tokenIn,
         address tokenOut
     ) external view returns (uint256, address, IHoneyExecutor.Router memory) {
-        return
-            IHoneyExecutor(EXECUTOR).bestSwapTokensToTokens(
-                amountIn,
-                tokenIn,
-                tokenOut
-            );
-    }
-
-    function bestSwapETHToTokens(
-        uint256 amountIn,
-        address tokenOut
-    ) external view returns (uint256, address, IHoneyExecutor.Router memory) {
-        return IHoneyExecutor(EXECUTOR).bestSwapETHToTokens(amountIn, tokenOut);
+        return executor.bestRouter(amountIn, tokenIn, tokenOut);
     }
 
     // =================== ADMIN FUNCTIONS =================== //
@@ -181,24 +167,18 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
         factory = IHoneyFactory(newFactory);
     }
 
+    function updateExecutor(
+        address newExecutor
+    ) external onlyRole(DEFAULT_ADMIN_ROLE) {
+        executor = IHoneyExecutor(newExecutor);
+    }
+
     function pause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _pause();
     }
 
     function unPause() external onlyRole(DEFAULT_ADMIN_ROLE) {
         _unpause();
-    }
-
-    function addRouter(
-        string calldata name,
-        string calldata routerURI,
-        address routerId
-    ) external onlyRole(ADMIN_ROLE) {
-        IHoneyExecutor(EXECUTOR).addRouter(name, routerURI, routerId);
-    }
-
-    function removeRouter(address routerId) external onlyRole(ADMIN_ROLE) {
-        IHoneyExecutor(EXECUTOR).removeRouter(routerId);
     }
 
     // =================== INTERNAL =================== //
@@ -235,7 +215,9 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
     ) internal {
         bytes memory data = abi.encode(tokenOut, receiver, amountOut);
 
-        router.sendMessage{value: msg.value}(
+        uint256 equitoFee = router.getFee(address(this));
+
+        router.sendMessage{value: equitoFee}(
             peers[destinationChainSelector],
             destinationChainSelector,
             data
@@ -260,4 +242,7 @@ contract HoneyRouter01 is IHoneyRouter01, AccessControl, Pausable, EquitoApp {
             amountOut
         );
     }
+
+    // Fallback function to receive ETH
+    receive() external payable {}
 }
